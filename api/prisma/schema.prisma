@@ -1,0 +1,118 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      String   @default("PATIENT") // ADMIN, PATIENT, PROVIDER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patientProfile  PatientProfile?
+  providerProfile ProviderProfile?
+  auditLogs       AuditLog[]
+}
+
+model PatientProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  firstName String
+  lastName  String
+  dob       DateTime
+  gender    String   // MALE, FEMALE
+  phone     String?
+  address   String?
+
+  labResults LabResult[]
+  orders     Order[]
+}
+
+model ProviderProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  firstName String
+  lastName  String
+  specialty String?
+  deaNumber String?
+  
+  reviewedLabs LabResult[]
+}
+
+model LabResult {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   PatientProfile @relation(fields: [patientId], references: [id])
+  providerId String?
+  provider  ProviderProfile? @relation(fields: [providerId], references: [id])
+  testDate  DateTime
+  uploadedAt DateTime @default(now())
+  status    String   @default("PENDING_REVIEW") // PENDING_REVIEW, REVIEWED
+
+  biomarkers Biomarker[]
+}
+
+model Biomarker {
+  id        String   @id @default(uuid())
+  labId     String
+  lab       LabResult @relation(fields: [labId], references: [id])
+  name      String
+  value     Float
+  unit      String
+  rangeLow  Float?
+  rangeHigh Float?
+  flag      String? // HIGH, LOW, NORMAL
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  sku         String   @unique
+  type        String // SUPPLEMENT, RX, LAB_TEST
+  
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id           String   @id @default(uuid())
+  patientId    String
+  patient      PatientProfile @relation(fields: [patientId], references: [id])
+  status       String   @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED
+  totalAmount  Float
+  fulfillmentId String? // ID from 3PL
+  trackingUrl  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items        OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   // VIEW_LAB, EDIT_NOTE, LOGIN
+  resource  String   // /labs/123
+  ipAddress String?
+  timestamp DateTime @default(now())
+}
