@@ -16,6 +16,9 @@
 - [x] Configure Docker Compose for PostgreSQL
 - [x] Set up Tailwind CSS 4 and shadcn/ui components
 - [x] Create project README.md
+- [x] Security Hardening: Enable Access Control on Patients API
+- [x] Security Hardening: Protect Password Hashes
+- [x] Security Hardening: Enforce Strong Secrets
 
 ### In Progress
 - [ ] Implement authentication module (JWT)
@@ -29,7 +32,7 @@
 - [ ] Stripe payment integration
 - [ ] 3PL fulfillment integration
 - [ ] Admin dashboard
-- [ ] HIPAA audit logging implementation
+- [x] HIPAA audit logging implementation
 - [ ] Email notifications
 - [ ] PDF lab report generation
 

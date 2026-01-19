@@ -1,0 +1,135 @@
+import { PatientsService } from './patients.service';
+export declare class PatientsController {
+    private readonly patientsService;
+    constructor(patientsService: PatientsService);
+    findAll(): Promise<({
+        user: {
+            email: string;
+            role: string;
+            createdAt: Date;
+        };
+        labResults: {
+            id: string;
+            patientId: string;
+            status: string;
+            testDate: Date;
+            providerId: string | null;
+            uploadedAt: Date;
+        }[];
+        orders: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            patientId: string;
+            status: string;
+            totalAmount: number;
+            fulfillmentId: string | null;
+            trackingUrl: string | null;
+        }[];
+        clinicalNotes: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            patientId: string;
+            status: string;
+            conciergeId: string | null;
+            providerId: string | null;
+            chiefComplaint: string | null;
+            history: string | null;
+            subjective: string | null;
+            objective: string | null;
+            assessment: string | null;
+            plan: string | null;
+        }[];
+    } & {
+        id: string;
+        userId: string;
+        firstName: string;
+        lastName: string;
+        dob: Date;
+        gender: string;
+        phone: string | null;
+        address: string | null;
+    })[]>;
+    findOne(id: string): Promise<({
+        user: {
+            id: string;
+            email: string;
+            role: string;
+            createdAt: Date;
+        };
+        labResults: {
+            id: string;
+            patientId: string;
+            status: string;
+            testDate: Date;
+            providerId: string | null;
+            uploadedAt: Date;
+        }[];
+        orders: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            patientId: string;
+            status: string;
+            totalAmount: number;
+            fulfillmentId: string | null;
+            trackingUrl: string | null;
+        }[];
+        clinicalNotes: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            patientId: string;
+            status: string;
+            conciergeId: string | null;
+            providerId: string | null;
+            chiefComplaint: string | null;
+            history: string | null;
+            subjective: string | null;
+            objective: string | null;
+            assessment: string | null;
+            plan: string | null;
+        }[];
+        goals: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            description: string;
+            type: string;
+            patientId: string;
+            status: string;
+        }[];
+        regimen: {
+            id: string;
+            name: string;
+            type: string;
+            dosage: string | null;
+            frequency: string | null;
+            source: string;
+            active: boolean;
+            startDate: Date | null;
+            endDate: Date | null;
+            notes: string | null;
+            patientId: string;
+            productId: string | null;
+        }[];
+        wearableData: {
+            id: string;
+            source: string;
+            patientId: string;
+            date: Date;
+            metrics: string;
+            syncedAt: Date;
+        }[];
+    } & {
+        id: string;
+        userId: string;
+        firstName: string;
+        lastName: string;
+        dob: Date;
+        gender: string;
+        phone: string | null;
+        address: string | null;
+    }) | null>;
+}

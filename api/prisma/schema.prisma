@@ -11,13 +11,14 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
-  role      String   @default("PATIENT") // ADMIN, PATIENT, PROVIDER
+  role      String   @default("PATIENT") // ADMIN, PATIENT, PROVIDER, CONCIERGE
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  patientProfile  PatientProfile?
-  providerProfile ProviderProfile?
-  auditLogs       AuditLog[]
+  patientProfile   PatientProfile?
+  providerProfile  ProviderProfile?
+  conciergeProfile ConciergeProfile?
+  auditLogs        AuditLog[]
 }
 
 model PatientProfile {
@@ -31,8 +32,66 @@ model PatientProfile {
   phone     String?
   address   String?
 
-  labResults LabResult[]
-  orders     Order[]
+  labResults    LabResult[]
+  orders        Order[]
+  clinicalNotes ClinicalNote[]
+  quotes        Quote[]
+  
+  goals         PatientGoal[]
+  regimen       ActiveRegimen[]
+  wearableData  WearableData[]
+  checkIns      CheckIn[]
+}
+
+model PatientGoal {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   PatientProfile @relation(fields: [patientId], references: [id])
+  
+  type        String // SHORT_TERM, MEDIUM_TERM
+  description String
+  status      String @default("ACTIVE") // ACTIVE, ACHIEVED, ARCHIVED
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ActiveRegimen {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   PatientProfile @relation(fields: [patientId], references: [id])
+  
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+  
+  name      String // If product is null, use this (e.g. external med)
+  dosage    String?
+  frequency String?
+  type      String // SUPPLEMENT, RX
+  source    String @default("EXTERNAL") // INTERNAL (from Invoice), EXTERNAL (Patient reported)
+  
+  active    Boolean @default(true)
+  startDate DateTime?
+  endDate   DateTime?
+  
+  notes     String?
+  
+  adherenceHistory RegimenAdherence[]
+}
+
+model WearableData {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   PatientProfile @relation(fields: [patientId], references: [id])
+  
+  source    String // OURA, WHOOP, APPLE_HEALTH
+  date      DateTime
+  
+  // JSON blob for flexibility as APIs change
+  // Structure: { sleepScore: 85, hrv: 45, steps: 10000 }
+  metrics   String 
+  
+  syncedAt  DateTime @default(now())
 }
 
 model ProviderProfile {
@@ -44,18 +103,55 @@ model ProviderProfile {
   specialty String?
   deaNumber String?
   
-  reviewedLabs LabResult[]
+  reviewedLabs  LabResult[]
+  authoredNotes ClinicalNote[]
 }
 
-model LabResult {
+model ConciergeProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  firstName String
+  lastName  String
+  
+  draftedNotes  ClinicalNote[]
+  createdQuotes Quote[]
+}
+
+model ClinicalNote {
   id        String   @id @default(uuid())
   patientId String
   patient   PatientProfile @relation(fields: [patientId], references: [id])
+  
+  providerId  String?
+  provider    ProviderProfile? @relation(fields: [providerId], references: [id])
+  
+  conciergeId String?
+  concierge   ConciergeProfile? @relation(fields: [conciergeId], references: [id])
+
+  status      String   @default("DRAFT") // DRAFT, PENDING_REVIEW, FINALIZED
+  
+  // SOAP Note Structure
+  chiefComplaint String? // Subjective (Concierge)
+  history        String? // Subjective (Concierge) - Lifestyle, Meds
+  subjective     String? // Subjective (Concierge/Provider)
+  objective      String? // Objective (Provider) - Physical exam, Lab review
+  assessment     String? // Assessment (Provider)
+  plan           String? // Plan (Provider) - Rx, Supplements
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LabResult {
+  id         String   @id @default(uuid())
+  patientId  String
+  patient    PatientProfile @relation(fields: [patientId], references: [id])
   providerId String?
-  provider  ProviderProfile? @relation(fields: [providerId], references: [id])
-  testDate  DateTime
+  provider   ProviderProfile? @relation(fields: [providerId], references: [id])
+  testDate   DateTime
   uploadedAt DateTime @default(now())
-  status    String   @default("PENDING_REVIEW") // PENDING_REVIEW, REVIEWED
+  status     String   @default("PENDING_REVIEW") // PENDING_REVIEW, REVIEWED
 
   biomarkers Biomarker[]
 }
@@ -81,20 +177,62 @@ model Product {
   type        String // SUPPLEMENT, RX, LAB_TEST
   
   orderItems  OrderItem[]
+  quoteItems  QuoteItem[]
+  activeRegimens ActiveRegimen[]
 }
 
-model Order {
+model Quote {
   id           String   @id @default(uuid())
   patientId    String
   patient      PatientProfile @relation(fields: [patientId], references: [id])
-  status       String   @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED
+  conciergeId  String
+  concierge    ConciergeProfile @relation(fields: [conciergeId], references: [id])
+  
+  status       String   @default("PENDING_APPROVAL") // PENDING_APPROVAL, APPROVED, REJECTED
   totalAmount  Float
-  fulfillmentId String? // ID from 3PL
-  trackingUrl  String?
+  validUntil   DateTime?
+  
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  items        OrderItem[]
+  items        QuoteItem[]
+  invoice      Invoice?
+}
+
+model QuoteItem {
+  id        String  @id @default(uuid())
+  quoteId   String
+  quote     Quote   @relation(fields: [quoteId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float   // Price at time of quote
+}
+
+model Invoice {
+  id        String   @id @default(uuid())
+  quoteId   String   @unique
+  quote     Quote    @relation(fields: [quoteId], references: [id])
+  
+  amount    Float
+  status    String   @default("UNPAID") // UNPAID, PAID, REFUNDED
+  paidAt    DateTime?
+  
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  patientId     String
+  patient       PatientProfile @relation(fields: [patientId], references: [id])
+  status        String   @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED
+  totalAmount   Float
+  fulfillmentId String? // ID from 3PL
+  trackingUrl   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items         OrderItem[]
 }
 
 model OrderItem {
@@ -111,8 +249,47 @@ model AuditLog {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  action    String   // VIEW_LAB, EDIT_NOTE, LOGIN
+  action    String   // VIEW_LAB, EDIT_NOTE, LOGIN, CREATE_QUOTE
   resource  String   // /labs/123
   ipAddress String?
   timestamp DateTime @default(now())
+}
+
+model CheckIn {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   PatientProfile @relation(fields: [patientId], references: [id])
+  date      DateTime @default(now())
+  type      String   @default("MONTHLY") // MONTHLY, QUARTERLY, ADHOC
+
+  metrics   PillarMetric[]
+  adherence RegimenAdherence[] // Linking adherence to a snapshot in time
+
+  notes        String? // Free text "What changed?"
+  advisorNotes String? // Internal
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PillarMetric {
+  id        String   @id @default(uuid())
+  checkInId String
+  checkIn   CheckIn  @relation(fields: [checkInId], references: [id])
+  
+  category  String // SLEEP, RECOVERY, LIBIDO, MENTAL_ACUITY, DIGESTION, DIET, MOVEMENT
+  score     Int    // 1-10
+  notes     String?
+}
+
+model RegimenAdherence {
+  id        String   @id @default(uuid())
+  checkInId String
+  checkIn   CheckIn  @relation(fields: [checkInId], references: [id])
+  
+  regimenId String
+  regimen   ActiveRegimen @relation(fields: [regimenId], references: [id])
+  
+  adherent  Boolean // Yes/No
+  notes     String? // e.g. "Stopped because of side effects"
 }

@@ -1,119 +1,86 @@
 # Adonis Health
 
-A modern healthcare platform for managing patient lab results, provider reviews, and product orders.
+**Adonis Health** is a premium telemedicine platform for men's hormone optimization and executive wellness.
 
 ## Tech Stack
 
-### Backend (API)
-- **Framework:** NestJS 11
-- **Database:** PostgreSQL 15 (Docker) / SQLite (development)
-- **ORM:** Prisma 5.22
-- **Language:** TypeScript 5
+### Frontend (User & Provider Portals)
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS + Shadcn UI
+- **Design System**: "Adonis Gold" (Integrated from v0.app)
+- **Key Features**: High-performance landing page, animated gradients, treatments showcase.
 
-### Frontend (Web)
-- **Framework:** Next.js 16
-- **UI Library:** React 19
-- **Styling:** Tailwind CSS 4
-- **Components:** Radix UI, shadcn/ui
+### Backend (API & Logic)
+- **Framework**: NestJS 11
+- **Database**: SQLite (Local Dev) / PostgreSQL (Production)
+- **ORM**: Prisma 5.22
+- **Authentication**: JWT + Passport + RBAC (Roles: Admin, Patient, Provider)
 
 ## Project Structure
 
 ```
 ├── api/                 # NestJS backend
 │   ├── src/
-│   │   ├── prisma/      # Prisma module & service
+│   │   ├── auth/        # Authentication (Login, Register, Guards)
+│   │   ├── prisma/      # Database Connection
 │   │   └── ...
 │   └── prisma/
-│       └── schema.prisma
+│       └── schema.prisma # DB Schema (SQLite)
 ├── web/                 # Next.js frontend
-│   ├── app/
-│   ├── components/
-│   └── lib/
-└── docker-compose.yml   # PostgreSQL database
+│   ├── app/             # App Router pages
+│   ├── components/      # Shadcn & Custom v0 Components
+│   └── lib/             # Utils & Hooks
+└── README.md
 ```
-
-## Data Models
-
-- **User** - Authentication with roles (Admin, Patient, Provider)
-- **PatientProfile** - Patient demographics and information
-- **ProviderProfile** - Healthcare provider details
-- **LabResult** - Lab test results with review status
-- **Biomarker** - Individual lab values with reference ranges
-- **Product** - Supplements, prescriptions, and lab tests
-- **Order / OrderItem** - E-commerce order management
-- **AuditLog** - HIPAA-compliant activity logging
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 20+
-- Docker & Docker Compose
+- (Optional) Docker for PostgreSQL production
 
-### Setup
+### Quick Start (Local Development)
 
-1. **Start the database:**
-   ```bash
-   docker-compose up -d
-   ```
-
-2. **Install API dependencies:**
+1. **Backend (API)**
    ```bash
    cd api
    npm install
-   ```
-
-3. **Run database migrations:**
-   ```bash
-   npx prisma migrate dev
-   ```
-
-4. **Start the API server:**
-   ```bash
+   # Initialize SQLite DB
+   npx prisma migrate dev --name init
+   # Start Server (Port 3001)
    npm run start:dev
    ```
 
-5. **Install Web dependencies:**
+2. **Frontend (Web)**
    ```bash
-   cd ../web
+   cd web
    npm install
-   ```
-
-6. **Start the web development server:**
-   ```bash
+   # Start Server (Port 3000)
    npm run dev
    ```
 
-### Available Scripts
-
-#### API
-| Command | Description |
-|---------|-------------|
-| `npm run start:dev` | Start development server with hot reload |
-| `npm run build` | Build for production |
-| `npm run test` | Run unit tests |
-| `npm run test:e2e` | Run end-to-end tests |
-| `npm run lint` | Lint and fix code |
-
-#### Web
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Lint code |
+3. **Verify**
+   - Frontend: [http://localhost:3000](http://localhost:3000)
+   - API: [http://localhost:3001](http://localhost:3001)
 
 ## Environment Variables
 
 ### API (`api/.env`)
 ```env
 DATABASE_URL="file:./dev.db"
+JWT_SECRET="supersecret_dev_key"
+PORT=3001
 ```
 
-For PostgreSQL (production):
-```env
-DATABASE_URL="postgresql://adonis:password123@localhost:5432/adonis_db"
-```
+### Web (`web/.env.local`)
+*(None currently required)*
+
+## Design Updates (v0.app)
+
+The frontend design is powered by **v0.app**. To update the design:
+1. Export the project from v0.app as a zip.
+2. Place `adonis-health-platform.zip` in the root directory.
+3. Run the sync workflow (see `.agent/workflows/sync_v0_design.md`).
 
 ## License
 
