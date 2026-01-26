@@ -1,5 +1,35 @@
 # Adonis Health - Task Log
 
+## January 26, 2026
+
+### AI Telehealth Planning - Completed
+
+#### Pre-Visit Briefing System (Planned)
+- [ ] Create `PreVisitBriefing` Prisma model
+- [ ] Create `TelehealthEncounter` Prisma model
+- [ ] Add AI analysis fields to `ClinicalNote` model
+- [ ] Build Pre-Visit AI Synthesis Service
+- [ ] Integrate Lab Analysis prompt (by physiological system)
+- [ ] Integrate CheckIn subjective data (pillar scores 1-10)
+- [ ] Integrate Concierge notes from check-ins
+- [ ] Integrate Wearable data trends
+- [ ] Build correlation analysis (subjective ↔ objective)
+- [ ] Create Pre-Visit Briefing UI component
+
+#### Telehealth Encounter System (Planned)
+- [ ] Zoom API integration for video calls
+- [ ] Recording/transcription capture
+- [ ] Real-time encounter context panel
+- [ ] Link encounter to ClinicalNote
+
+#### Post-Encounter AI Bridge (Planned)
+- [ ] Transcript analysis service
+- [ ] AI-assisted SOAP note completion
+- [ ] Provider review/approval workflow
+- [ ] Note finalization flow
+
+---
+
 ## January 14, 2026
 
 ### Completed

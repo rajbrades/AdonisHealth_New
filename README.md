@@ -16,12 +16,23 @@
 - **ORM**: Prisma 5.22
 - **Authentication**: JWT + Passport + RBAC (Roles: Admin, Patient, Provider)
 
+### AI-Powered Telehealth (Planned)
+- **Pre-Visit Briefing**: AI-synthesized patient context before encounters
+- **Lab Analysis**: Interpretation by physiological system with pattern detection
+- **Symptom Correlation**: Links subjective check-in data with objective labs
+- **Encounter Support**: Zoom integration with real-time context panel
+- **Post-Encounter AI**: Automated SOAP note completion with provider review
+
+See [docs/AI_TELEHEALTH_SPEC.md](docs/AI_TELEHEALTH_SPEC.md) for full specification.
+
 ## Project Structure
 
 ```
 ├── api/                 # NestJS backend
 │   ├── src/
 │   │   ├── auth/        # Authentication (Login, Register, Guards)
+│   │   ├── concierge/   # Check-ins, Patient Management
+│   │   ├── patients/    # Patient Profiles, Labs, Notes
 │   │   ├── prisma/      # Database Connection
 │   │   └── ...
 │   └── prisma/
@@ -30,6 +41,8 @@
 │   ├── app/             # App Router pages
 │   ├── components/      # Shadcn & Custom v0 Components
 │   └── lib/             # Utils & Hooks
+├── docs/                # Technical Documentation
+│   └── AI_TELEHEALTH_SPEC.md  # AI Telehealth System Spec
 └── README.md
 ```
 
