@@ -19,6 +19,7 @@ model User {
   providerProfile  ProviderProfile?
   conciergeProfile ConciergeProfile?
   auditLogs        AuditLog[]
+  uploadedLabFiles LabFile[]
 }
 
 model PatientProfile {
@@ -33,10 +34,11 @@ model PatientProfile {
   address   String?
 
   labResults    LabResult[]
+  labPanels     LabPanel[]    // New lab infrastructure
   orders        Order[]
   clinicalNotes ClinicalNote[]
   quotes        Quote[]
-  
+
   goals         PatientGoal[]
   regimen       ActiveRegimen[]
   wearableData  WearableData[]
@@ -102,9 +104,10 @@ model ProviderProfile {
   lastName  String
   specialty String?
   deaNumber String?
-  
-  reviewedLabs  LabResult[]
-  authoredNotes ClinicalNote[]
+
+  reviewedLabs       LabResult[]
+  reviewedLabPanels  LabPanel[]  @relation("LabPanelReviewer")
+  authoredNotes      ClinicalNote[]
 }
 
 model ConciergeProfile {
@@ -166,6 +169,164 @@ model Biomarker {
   rangeLow  Float?
   rangeHigh Float?
   flag      String? // HIGH, LOW, NORMAL
+}
+
+// ===========================================
+// NEW LAB INFRASTRUCTURE (v2)
+// ===========================================
+
+model LabPanel {
+  id              String   @id @default(uuid())
+  patientId       String
+  patient         PatientProfile @relation(fields: [patientId], references: [id])
+
+  labType         String   @default("BLOOD_PANEL") // BLOOD_PANEL, HORMONE_PANEL, GENETIC_TEST, GUT_HEALTH, URINALYSIS, OTHER
+  provider        String   @default("OTHER") // QUEST, LABCORP, ACCESS_MEDICAL, INTERNAL, OTHER
+  providerLabId   String?  // External reference ID from lab provider
+  panelName       String   // "Comprehensive Metabolic Panel"
+
+  collectionDate  DateTime // When blood was drawn
+  receivedDate    DateTime?
+  reportDate      DateTime?
+  uploadedAt      DateTime @default(now())
+
+  status          String   @default("PENDING_UPLOAD") // PENDING_UPLOAD, PROCESSING, PENDING_REVIEW, REVIEWED, FLAGGED
+  processingStatus String? // QUEUED, EXTRACTING, EXTRACTED, NORMALIZED, FAILED, MANUAL_ENTRY
+  processingError String?
+
+  reviewedById    String?
+  reviewedBy      ProviderProfile? @relation("LabPanelReviewer", fields: [reviewedById], references: [id])
+  reviewedAt      DateTime?
+  reviewNotes     String?
+
+  originalFileId  String?
+  originalFile    LabFile? @relation(fields: [originalFileId], references: [id])
+
+  results         LabResultValue[]
+  metadata        String?  // JSON for additional data
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([patientId, collectionDate])
+  @@index([status])
+  @@index([provider])
+}
+
+model LabFile {
+  id               String   @id @default(uuid())
+  storageProvider  String   // "s3", "local"
+  bucket           String?  // S3 bucket name
+  key              String   // File path/key
+  originalFilename String
+  mimeType         String   // "application/pdf"
+  fileSize         Int      // Bytes
+  checksum         String?  // MD5 for integrity
+
+  ocrText          String?  // Raw OCR output
+  extractedData    String?  // JSON of extracted values
+
+  uploadedById     String
+  uploadedBy       User     @relation(fields: [uploadedById], references: [id])
+  uploadedAt       DateTime @default(now())
+
+  labPanels        LabPanel[]
+
+  @@index([key])
+}
+
+model BiomarkerCatalog {
+  id                   String   @id @default(uuid())
+  code                 String   @unique // TOTAL_TESTOSTERONE, HBA1C
+  name                 String   // "Total Testosterone"
+  category             String   // "Hormone Profile", "Metabolic"
+  subcategory          String?  // "Androgens", "Thyroid"
+
+  defaultUnit          String   // "ng/dL"
+
+  // Adonis optimal ranges (tighter than lab reference)
+  optimalRangeLow      Float?
+  optimalRangeHigh     Float?
+
+  // Standard lab reference ranges
+  refRangeLow          Float?
+  refRangeHigh         Float?
+
+  // Gender-specific ranges JSON: { "MALE": { low: 300, high: 1000 }, "FEMALE": { low: 15, high: 70 } }
+  genderSpecificRanges String?
+
+  // Age-specific ranges JSON: { "30-40": { low: 400, high: 900 } }
+  ageSpecificRanges    String?
+
+  description          String?  // Clinical description
+  clinicalNotes        String?  // Provider notes about interpretation
+
+  displayOrder         Int      @default(0)
+  isActive             Boolean  @default(true)
+
+  aliases              BiomarkerAlias[]
+  results              LabResultValue[]
+
+  @@index([category])
+  @@index([code])
+}
+
+model BiomarkerAlias {
+  id               String   @id @default(uuid())
+  biomarkerId      String
+  biomarker        BiomarkerCatalog @relation(fields: [biomarkerId], references: [id])
+
+  labProvider      String   // QUEST, LABCORP, ACCESS_MEDICAL
+  aliasName        String   // "Testosterone, Total" (Quest naming)
+  aliasCode        String?  // Lab-specific test code "873"
+
+  // Unit conversion if lab uses different units
+  labUnit          String?
+  conversionFactor Float    @default(1.0) // Multiply lab value by this
+
+  // Lab-specific reference ranges
+  labRefRangeLow   Float?
+  labRefRangeHigh  Float?
+
+  @@unique([biomarkerId, labProvider, aliasName])
+  @@index([aliasName])
+  @@index([labProvider])
+}
+
+model LabResultValue {
+  id               String   @id @default(uuid())
+  labPanelId       String
+  labPanel         LabPanel @relation(fields: [labPanelId], references: [id], onDelete: Cascade)
+
+  biomarkerId      String
+  biomarker        BiomarkerCatalog @relation(fields: [biomarkerId], references: [id])
+
+  // Raw value from lab report
+  rawValue         String   // Store original (could be "<5" or "Negative")
+  rawUnit          String?
+
+  // Normalized value
+  numericValue     Float?   // Parsed numeric (null if non-numeric)
+  normalizedUnit   String?  // Converted to canonical unit
+
+  // Flag based on ranges
+  flag             String?  // CRITICAL_LOW, LOW, OPTIMAL, HIGH, CRITICAL_HIGH
+
+  // Ranges captured at time of result
+  refRangeLow      Float?
+  refRangeHigh     Float?
+  optimalRangeLow  Float?
+  optimalRangeHigh Float?
+
+  isManualEntry    Boolean  @default(false)
+  extractionConfidence Float? // 0-1 AI confidence
+
+  providerNote     String?
+
+  createdAt        DateTime @default(now())
+
+  @@index([labPanelId])
+  @@index([biomarkerId])
 }
 
 model Product {
