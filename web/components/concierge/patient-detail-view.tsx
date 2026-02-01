@@ -287,31 +287,31 @@ export function PatientDetailView({ patientId }: { patientId: string }) {
         <TabsList className="bg-transparent border-b border-border w-full justify-start gap-0 h-auto p-0">
           <TabsTrigger
             value="overview"
-            className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-6 py-3"
+            className="bg-transparent border-0 border-b-4 border-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:border-b-4 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-6 py-3 font-semibold"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
             value="pillars"
-            className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-6 py-3"
+            className="bg-transparent border-0 border-b-4 border-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:border-b-4 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-6 py-3 font-semibold"
           >
             Health Pillars
           </TabsTrigger>
           <TabsTrigger
             value="medications"
-            className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-6 py-3"
+            className="bg-transparent border-0 border-b-4 border-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:border-b-4 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-6 py-3 font-semibold"
           >
             Medications
           </TabsTrigger>
           <TabsTrigger
             value="labs"
-            className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-6 py-3"
+            className="bg-transparent border-0 border-b-4 border-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:border-b-4 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-6 py-3 font-semibold"
           >
             Lab Results
           </TabsTrigger>
           <TabsTrigger
             value="timeline"
-            className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-6 py-3"
+            className="bg-transparent border-0 border-b-4 border-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:border-b-4 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-6 py-3 font-semibold"
           >
             Timeline
           </TabsTrigger>
@@ -370,9 +370,11 @@ export function PatientDetailView({ patientId }: { patientId: string }) {
                 ))}
               </div>
               <div className="p-4 border-t border-border">
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  View All Medications
-                </Button>
+                <Link href={`/concierge/patients/${patientId}/medications`}>
+                  <Button variant="outline" size="sm" className="w-full bg-transparent">
+                    View All Medications
+                  </Button>
+                </Link>
               </div>
             </div>
 
@@ -422,9 +424,11 @@ export function PatientDetailView({ patientId }: { patientId: string }) {
                   })}
               </div>
               <div className="p-4 border-t border-border">
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  View Full Report
-                </Button>
+                <Link href={`/concierge/patients/${patientId}/labs`}>
+                  <Button variant="outline" size="sm" className="w-full bg-transparent">
+                    View Full Report
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

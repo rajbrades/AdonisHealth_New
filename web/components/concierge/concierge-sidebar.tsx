@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   TrendingUp,
+  Microscope,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -20,6 +21,7 @@ const navigation = [
   { name: "Patients", href: "/concierge/patients", icon: Users },
   { name: "Check-ins", href: "/concierge/checkins", icon: ClipboardCheck },
   { name: "Messages", href: "/concierge/messages", icon: MessageSquare },
+  { name: "Labs", href: "/concierge/labs", icon: Microscope },
   { name: "Appointments", href: "/concierge/appointments", icon: Calendar },
   { name: "Analytics", href: "/concierge/analytics", icon: TrendingUp },
 ]

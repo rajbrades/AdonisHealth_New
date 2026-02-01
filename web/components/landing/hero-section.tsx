@@ -116,13 +116,15 @@ export function HeroSection() {
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 sm:h-14 px-6 sm:px-10 border-border hover:border-primary hover:text-background bg-transparent text-sm sm:text-base"
-            >
-              Learn More
-            </Button>
+            <Link href="/about">
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 sm:h-14 px-6 sm:px-10 border-border hover:border-primary hover:text-background bg-transparent text-sm sm:text-base"
+              >
+                Learn More
+              </Button>
+            </Link>
           </div>
         </div>
 

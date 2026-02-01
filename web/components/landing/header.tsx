@@ -52,8 +52,9 @@ export function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || mobileMenuOpen ? "bg-background/95 backdrop-blur-sm" : "bg-transparent"
-        }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled || mobileMenuOpen ? "bg-background/95 backdrop-blur-sm" : "bg-transparent"
+      }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <nav className="flex items-center justify-between h-16 sm:h-20 lg:h-24">
@@ -86,10 +87,11 @@ export function Header() {
                       <Link
                         key={treatment}
                         href={`/treatments/${treatment.toLowerCase().replace(/\s+/g, "-")}`}
-                        className={`block px-6 py-4 border-b border-border last:border-b-0 transition-colors ${index === 0
+                        className={`block px-6 py-4 border-b border-border last:border-b-0 transition-colors ${
+                          index === 0
                             ? "text-primary bg-primary/5"
                             : "text-foreground hover:text-primary hover:bg-primary/5"
-                          }`}
+                        }`}
                       >
                         {treatment}
                       </Link>
@@ -99,20 +101,13 @@ export function Header() {
               )}
             </div>
 
-            {/* Desktop Navigation */}
-            {[
-              { label: "Goals", href: "/goals" },
-              { label: "How it Works", href: "/how-it-works" },
-              { label: "About Us", href: "/about" },
-              { label: "FAQ", href: "/faq" },
-              { label: "Blog", href: "/blog" },
-            ].map((item) => (
+            {["Goals", "How it Works", "About Us", "FAQ", "Blog"].map((item) => (
               <Link
-                key={item.label}
-                href={item.href}
+                key={item}
+                href={item === "About Us" ? "/about" : `/${item.toLowerCase().replace(/\s+/g, "-")}`}
                 className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-colors"
               >
-                {item.label}
+                {item}
               </Link>
             ))}
           </div>
@@ -164,20 +159,14 @@ export function Header() {
                 )}
               </div>
 
-              {[
-                { label: "Goals", href: "/goals" },
-                { label: "How it Works", href: "/how-it-works" },
-                { label: "About Us", href: "/about" },
-                { label: "FAQ", href: "/faq" },
-                { label: "Blog", href: "/blog" },
-              ].map((item) => (
+              {["Goals", "How it Works", "About Us", "FAQ", "Blog"].map((item) => (
                 <Link
-                  key={item.label}
-                  href={item.href}
+                  key={item}
+                  href={item === "About Us" ? "/about" : `/${item.toLowerCase().replace(/\s+/g, "-")}`}
                   className="text-foreground text-lg py-4 border-b border-border"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {item.label}
+                  {item}
                 </Link>
               ))}
 

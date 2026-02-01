@@ -96,29 +96,10 @@ const supplementQuestions = [
   },
 ]
 
-interface CheckInAnswers {
-  mood: number
-  sleepHours: number
-  sleepQuality: string
-  sleepIssues: string
-  nutritionProtein: string
-  nutritionWater: string
-  nutritionMeals: string
-  exerciseWorkouts: number
-  exerciseIntensity: string
-  exerciseRecovery: string
-  stressLevel: number
-  stressSource: string
-  stressCoping: string
-  supplementAdherence: number
-  supplementIssues: string
-  additionalNotes: string
-}
-
 export function PatientCheckin() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(0)
-  const [answers, setAnswers] = useState<CheckInAnswers>({
+  const [answers, setAnswers] = useState<Record<string, unknown>>({
     mood: 7,
     sleepHours: 7,
     sleepQuality: "",
@@ -150,79 +131,12 @@ export function PatientCheckin() {
     }
   }
 
-  // Helper to fetch current patient ID (Mocked for now, pending Auth Context)
-  // In a real app, this would come from the session or an API call to /auth/me
-  const getPatientId = () => "f4437a28-99f9-47b0-8a86-ba920ae432af"; // Using the ID from verification script
-
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     setIsSubmitting(true)
-    try {
-      // 1. Transform Answers to DTO
-      const payload = {
-        patientId: getPatientId(),
-        type: "MONTHLY",
-        date: new Date().toISOString(),
-        notes: `Overall Mood: ${answers.mood}/10. \nAdditional Notes: ${answers.additionalNotes || 'None'}`,
-
-        pillars: [
-          // Sleep
-          {
-            category: "SLEEP",
-            score: typeof answers.sleepQuality === 'string' && answers.sleepQuality === 'Excellent' ? 10 :
-              typeof answers.sleepQuality === 'string' && answers.sleepQuality === 'Good' ? 8 : 5,
-            notes: `Hours: ${answers.sleepHours}. Issues: ${answers.sleepIssues || 'None'}`
-          },
-          // Diet (Nutrition)
-          {
-            category: "DIET",
-            score: answers.nutritionProtein === 'Every day' ? 10 : 7,
-            notes: `Protein: ${answers.nutritionProtein}. Water: ${answers.nutritionWater}`
-          },
-          // Movement (Exercise)
-          {
-            category: "MOVEMENT",
-            score: (answers.exerciseWorkouts as number) >= 5 ? 10 : (answers.exerciseWorkouts as number) * 2,
-            notes: `Workouts: ${answers.exerciseWorkouts}. Intensity: ${answers.exerciseIntensity}`
-          },
-          // Mental Acuity (Stress/Mood)
-          {
-            category: "MENTAL_ACUITY",
-            score: 10 - (answers.stressLevel as number), // Inverse of stress
-            notes: `Stress Source: ${answers.stressSource}. Coping: ${answers.stressCoping}`
-          }
-        ],
-
-        adherence: [
-          {
-            regimenId: "general-stack", // Placeholder until we load real regimens
-            adherent: (answers.supplementAdherence as number) > 5,
-            notes: `Adherence Days: ${answers.supplementAdherence}. Issues: ${answers.supplementIssues || 'None'}`
-          }
-        ]
-      }
-
-      console.log("Submitting Payload:", payload);
-
-      const res = await fetch("http://localhost:3001/concierge/checkin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-
-      if (!res.ok) {
-        throw new Error("Failed to submit check-in");
-      }
-
-      const data = await res.json();
-      console.log("Success:", data);
-      router.push("/dashboard?checkin=success");
-
-    } catch (err) {
-      console.error(err);
-      alert("Error submitting check-in. Please try again.");
-    } finally {
-      setIsSubmitting(false)
-    }
+    // Simulate API call
+    setTimeout(() => {
+      router.push("/patient?checkin=success")
+    }, 1500)
   }
 
   const renderStepContent = () => {
@@ -280,10 +194,11 @@ export function PatientCheckin() {
                         onClick={() =>
                           setAnswers({ ...answers, [q.id === "quality" ? "sleepQuality" : "sleepIssues"]: opt })
                         }
-                        className={`p-3 border text-left transition-colors ${answers[q.id === "quality" ? "sleepQuality" : "sleepIssues"] === opt
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50"
-                          }`}
+                        className={`p-3 border text-left transition-colors ${
+                          answers[q.id === "quality" ? "sleepQuality" : "sleepIssues"] === opt
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border hover:border-primary/50"
+                        }`}
                       >
                         {opt}
                       </button>
@@ -306,12 +221,13 @@ export function PatientCheckin() {
                     <button
                       key={opt}
                       onClick={() =>
-                        setAnswers({ ...answers, [`nutrition${q.id.charAt(0).toUpperCase() + q.id.slice(1)}` as keyof CheckInAnswers]: opt })
+                        setAnswers({ ...answers, [`nutrition${q.id.charAt(0).toUpperCase() + q.id.slice(1)}`]: opt })
                       }
-                      className={`p-3 border text-left transition-colors ${answers[`nutrition${q.id.charAt(0).toUpperCase() + q.id.slice(1)}` as keyof CheckInAnswers] === opt
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border hover:border-primary/50"
-                        }`}
+                      className={`p-3 border text-left transition-colors ${
+                        answers[`nutrition${q.id.charAt(0).toUpperCase() + q.id.slice(1)}`] === opt
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50"
+                      }`}
                     >
                       {opt}
                     </button>
@@ -349,13 +265,14 @@ export function PatientCheckin() {
                         onClick={() =>
                           setAnswers({
                             ...answers,
-                            [`exercise${q.id.charAt(0).toUpperCase() + q.id.slice(1)}` as keyof CheckInAnswers]: opt,
+                            [`exercise${q.id.charAt(0).toUpperCase() + q.id.slice(1)}`]: opt,
                           })
                         }
-                        className={`p-3 border text-left transition-colors ${answers[`exercise${q.id.charAt(0).toUpperCase() + q.id.slice(1)}` as keyof CheckInAnswers] === opt
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50"
-                          }`}
+                        className={`p-3 border text-left transition-colors ${
+                          answers[`exercise${q.id.charAt(0).toUpperCase() + q.id.slice(1)}`] === opt
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border hover:border-primary/50"
+                        }`}
                       >
                         {opt}
                       </button>
@@ -394,12 +311,13 @@ export function PatientCheckin() {
                       <button
                         key={opt}
                         onClick={() =>
-                          setAnswers({ ...answers, [`stress${q.id.charAt(0).toUpperCase() + q.id.slice(1)}` as keyof CheckInAnswers]: opt })
+                          setAnswers({ ...answers, [`stress${q.id.charAt(0).toUpperCase() + q.id.slice(1)}`]: opt })
                         }
-                        className={`p-3 border text-left transition-colors ${answers[`stress${q.id.charAt(0).toUpperCase() + q.id.slice(1)}` as keyof CheckInAnswers] === opt
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50"
-                          }`}
+                        className={`p-3 border text-left transition-colors ${
+                          answers[`stress${q.id.charAt(0).toUpperCase() + q.id.slice(1)}`] === opt
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border hover:border-primary/50"
+                        }`}
                       >
                         {opt}
                       </button>
@@ -436,10 +354,11 @@ export function PatientCheckin() {
                       <button
                         key={opt}
                         onClick={() => setAnswers({ ...answers, supplementIssues: opt })}
-                        className={`p-3 border text-left transition-colors ${answers.supplementIssues === opt
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50"
-                          }`}
+                        className={`p-3 border text-left transition-colors ${
+                          answers.supplementIssues === opt
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border hover:border-primary/50"
+                        }`}
                       >
                         {opt}
                       </button>
