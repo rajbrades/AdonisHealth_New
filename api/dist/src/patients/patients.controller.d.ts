@@ -3,6 +3,21 @@ export declare class PatientsController {
     private readonly patientsService;
     constructor(patientsService: PatientsService);
     findAll(): Promise<({
+        clinicalNotes: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            patientId: string;
+            status: string;
+            conciergeId: string | null;
+            providerId: string | null;
+            chiefComplaint: string | null;
+            history: string | null;
+            subjective: string | null;
+            objective: string | null;
+            assessment: string | null;
+            plan: string | null;
+        }[];
         user: {
             email: string;
             role: string;
@@ -25,21 +40,6 @@ export declare class PatientsController {
             totalAmount: number;
             fulfillmentId: string | null;
             trackingUrl: string | null;
-        }[];
-        clinicalNotes: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            patientId: string;
-            status: string;
-            conciergeId: string | null;
-            providerId: string | null;
-            chiefComplaint: string | null;
-            history: string | null;
-            subjective: string | null;
-            objective: string | null;
-            assessment: string | null;
-            plan: string | null;
         }[];
     } & {
         id: string;
@@ -52,6 +52,21 @@ export declare class PatientsController {
         address: string | null;
     })[]>;
     findOne(id: string): Promise<({
+        clinicalNotes: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            patientId: string;
+            status: string;
+            conciergeId: string | null;
+            providerId: string | null;
+            chiefComplaint: string | null;
+            history: string | null;
+            subjective: string | null;
+            objective: string | null;
+            assessment: string | null;
+            plan: string | null;
+        }[];
         user: {
             id: string;
             email: string;
@@ -76,26 +91,11 @@ export declare class PatientsController {
             fulfillmentId: string | null;
             trackingUrl: string | null;
         }[];
-        clinicalNotes: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            patientId: string;
-            status: string;
-            conciergeId: string | null;
-            providerId: string | null;
-            chiefComplaint: string | null;
-            history: string | null;
-            subjective: string | null;
-            objective: string | null;
-            assessment: string | null;
-            plan: string | null;
-        }[];
         goals: {
             id: string;
+            description: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string;
             type: string;
             patientId: string;
             status: string;

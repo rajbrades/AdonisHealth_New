@@ -99,22 +99,22 @@ export function IntakeIntro() {
                   symptoms and optimization goals. Multiple testing options available.
                 </p>
 
-                <div className="space-y-3 mb-8">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 border border-primary/50 flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-primary" />
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 border border-primary flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle className="w-3 h-3 text-primary" />
                     </div>
                     <span className="text-sm">Customized lab panel options based on your profile</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 border border-primary/50 flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-primary" />
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 border border-primary flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle className="w-3 h-3 text-primary" />
                     </div>
                     <span className="text-sm">Choose from Essential, Comprehensive, or Executive panels</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 border border-primary/50 flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-primary" />
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 border border-primary flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle className="w-3 h-3 text-primary" />
                     </div>
                     <span className="text-sm">Provider review within 24-48 hours</span>
                   </div>
@@ -123,72 +123,78 @@ export function IntakeIntro() {
                 <Link href="/get-started/assessment">
                   <Button
                     size="lg"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-14 text-base"
+                    className="w-full sm:w-auto bg-transparent border-2 border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-14 px-8 text-base font-semibold transition-all duration-300"
                   >
                     Begin Free Assessment
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                 </Link>
 
-                <p className="text-xs text-muted-foreground mt-4 font-mono">
-                  TAKES 10-15 MIN • NO CREDIT CARD • 100% CONFIDENTIAL
+                <p className="text-[10px] md:text-xs text-muted-foreground mt-4 font-mono tracking-wider uppercase">
+                  Takes 10-15 Min • No Credit Card • 100% Confidential
                 </p>
               </div>
 
               {/* Right side - Visual element */}
-              <div className="hidden md:block">
-                <div className="border border-border p-6 space-y-4">
-                  <div className="flex items-center gap-3 pb-4 border-b border-border">
-                    <FileText className="w-5 h-5 text-primary" />
-                    <span className="font-mono text-sm uppercase tracking-wider">What You'll Receive</span>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4 p-4 border border-border/50 hover:border-primary/30 transition-colors">
-                      <div className="w-10 h-10 border border-primary/50 flex items-center justify-center flex-shrink-0">
-                        <span className="text-primary font-bold">1</span>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-1">Lab Panel Recommendations</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Customized testing options based on your health profile
-                        </p>
-                      </div>
+              <div className="hidden md:block h-full">
+                <div className="border border-border/50 bg-zinc-950/50 p-6 h-full flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 pb-6 border-b border-border/50 mb-6">
+                      <FileText className="w-5 h-5 text-primary" />
+                      <span className="font-mono text-sm uppercase tracking-wider">What You'll Receive</span>
                     </div>
 
-                    <div className="flex items-start gap-4 p-4 border border-border/50 hover:border-primary/30 transition-colors">
-                      <div className="w-10 h-10 border border-primary/50 flex items-center justify-center flex-shrink-0">
-                        <span className="text-primary font-bold">2</span>
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-4 p-4 border border-border/30 bg-background/20">
+                        <div className="w-8 h-8 border border-primary/50 flex items-center justify-center flex-shrink-0 text-primary font-bold font-mono">
+                          1
+                        </div>
+                        <div>
+                          <h4 className="font-semibold mb-1 text-sm">Lab Panel Recommendations</h4>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Customized testing options based on your health profile
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-semibold mb-1">Provider Review</h4>
-                        <p className="text-sm text-muted-foreground">Licensed provider analyzes your assessment</p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-start gap-4 p-4 border border-border/50 hover:border-primary/30 transition-colors">
-                      <div className="w-10 h-10 border border-primary/50 flex items-center justify-center flex-shrink-0">
-                        <span className="text-primary font-bold">3</span>
+                      <div className="flex items-start gap-4 p-4 border border-border/30 bg-background/20">
+                        <div className="w-8 h-8 border border-primary/50 flex items-center justify-center flex-shrink-0 text-primary font-bold font-mono">
+                          2
+                        </div>
+                        <div>
+                          <h4 className="font-semibold mb-1 text-sm">Provider Review</h4>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Licensed provider analyzes your assessment
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-semibold mb-1">Treatment Options</h4>
-                        <p className="text-sm text-muted-foreground">Personalized protocols after lab results</p>
+
+                      <div className="flex items-start gap-4 p-4 border border-border/30 bg-background/20">
+                        <div className="w-8 h-8 border border-primary/50 flex items-center justify-center flex-shrink-0 text-primary font-bold font-mono">
+                          3
+                        </div>
+                        <div>
+                          <h4 className="font-semibold mb-1 text-sm">Treatment Options</h4>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Personalized protocols after lab results
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Trust badges */}
-                  <div className="flex items-center justify-between pt-4 border-t border-border text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Shield className="w-3 h-3 text-primary" />
+                  <div className="flex items-center justify-between pt-6 border-t border-border/50 text-xs text-muted-foreground mt-6">
+                    <div className="flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-primary" />
                       <span>HIPAA</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Stethoscope className="w-3 h-3 text-primary" />
+                    <div className="flex items-center gap-1.5">
+                      <Stethoscope className="w-3.5 h-3.5 text-primary" />
                       <span>Licensed</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-primary" />
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-primary" />
                       <span>24-48h</span>
                     </div>
                   </div>

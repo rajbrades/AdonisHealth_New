@@ -23,8 +23,8 @@ export declare class QuotesService {
             product: {
                 id: string;
                 name: string;
-                sku: string;
                 description: string | null;
+                sku: string;
                 price: number;
                 type: string;
             };
@@ -62,6 +62,13 @@ export declare class QuotesService {
             phone: string | null;
             address: string | null;
         };
+        items: {
+            id: string;
+            price: number;
+            productId: string;
+            quantity: number;
+            quoteId: string;
+        }[];
         invoice: {
             id: string;
             createdAt: Date;
@@ -70,13 +77,6 @@ export declare class QuotesService {
             amount: number;
             paidAt: Date | null;
         } | null;
-        items: {
-            id: string;
-            price: number;
-            productId: string;
-            quantity: number;
-            quoteId: string;
-        }[];
     } & {
         id: string;
         createdAt: Date;
@@ -98,20 +98,12 @@ export declare class QuotesService {
             phone: string | null;
             address: string | null;
         };
-        invoice: {
-            id: string;
-            createdAt: Date;
-            status: string;
-            quoteId: string;
-            amount: number;
-            paidAt: Date | null;
-        } | null;
         items: ({
             product: {
                 id: string;
                 name: string;
-                sku: string;
                 description: string | null;
+                sku: string;
                 price: number;
                 type: string;
             };
@@ -122,6 +114,14 @@ export declare class QuotesService {
             quantity: number;
             quoteId: string;
         })[];
+        invoice: {
+            id: string;
+            createdAt: Date;
+            status: string;
+            quoteId: string;
+            amount: number;
+            paidAt: Date | null;
+        } | null;
         concierge: {
             id: string;
             userId: string;

@@ -16,9 +16,9 @@ export declare class ConciergeController {
     getTrends(id: string): Promise<({
         metrics: {
             id: string;
+            category: string;
             notes: string | null;
             checkInId: string;
-            category: string;
             score: number;
         }[];
         adherence: {

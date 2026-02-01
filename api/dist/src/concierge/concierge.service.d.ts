@@ -16,9 +16,9 @@ export declare class ConciergeService {
     getPatientTrends(patientId: string): Promise<({
         metrics: {
             id: string;
+            category: string;
             notes: string | null;
             checkInId: string;
-            category: string;
             score: number;
         }[];
         adherence: {
