@@ -1,100 +1,121 @@
 # Adonis Health
 
-**Adonis Health** is a premium telemedicine platform for men's hormone optimization and executive wellness.
+**Adonis Health** is a premium telemedicine platform for men's hormone optimization and executive wellness. This repository contains the full-stack application, including the frontend patient and provider portals, and the backend API.
+
+---
+
+## Features
+
+- **HIPAA-Compliant Authentication**: Secure user registration and login with JWT, RBAC, password validation, and comprehensive audit logging.
+- **AI-Powered Lab Analysis**: Automated extraction and interpretation of lab results from PDF reports.
+- **Patient & Provider Portals**: Dedicated interfaces for patients to manage their health and for providers to manage their patients.
+- **Telehealth Encounter System**: Planned integration with Zoom for real-time video consultations.
+- **Automated Clinical Notes**: AI-assisted SOAP note generation to streamline provider workflows.
+
+---
 
 ## Tech Stack
 
-### Frontend (User & Provider Portals)
-- **Framework**: Next.js 14 (App Router)
-- **Styling**: Tailwind CSS + Shadcn UI
-- **Design System**: "Adonis Gold" (Integrated from v0.app)
-- **Key Features**: High-performance landing page, animated gradients, treatments showcase.
+| Component | Technology | Description |
+|---|---|---|
+| **Frontend** | Next.js 14 (App Router) | High-performance patient and provider portals. |
+| **Styling** | Tailwind CSS + Shadcn UI | Modern, responsive, and accessible user interfaces. |
+| **Backend** | NestJS 11 | Scalable and maintainable server-side application. |
+| **Database** | PostgreSQL (Production) | Reliable and robust relational database. |
+| **ORM** | Prisma 5.22 | Type-safe database access and schema management. |
+| **Authentication** | JWT + Passport.js | Secure, token-based authentication with role-based access control. |
+| **AI Services** | Anthropic Claude | AI-powered lab analysis and clinical note generation. |
 
-### Backend (API & Logic)
-- **Framework**: NestJS 11
-- **Database**: SQLite (Local Dev) / PostgreSQL (Production)
-- **ORM**: Prisma 5.22
-- **Authentication**: JWT + Passport + RBAC (Roles: Admin, Patient, Provider)
-
-### AI-Powered Telehealth (Planned)
-- **Pre-Visit Briefing**: AI-synthesized patient context before encounters
-- **Lab Analysis**: Interpretation by physiological system with pattern detection
-- **Symptom Correlation**: Links subjective check-in data with objective labs
-- **Encounter Support**: Zoom integration with real-time context panel
-- **Post-Encounter AI**: Automated SOAP note completion with provider review
-
-See [docs/AI_TELEHEALTH_SPEC.md](docs/AI_TELEHEALTH_SPEC.md) for full specification.
+---
 
 ## Project Structure
 
 ```
-├── api/                 # NestJS backend
+AdonisHealth_New/
+├── api/                 # NestJS backend API
 │   ├── src/
-│   │   ├── auth/        # Authentication (Login, Register, Guards)
-│   │   ├── concierge/   # Check-ins, Patient Management
-│   │   ├── patients/    # Patient Profiles, Labs, Notes
-│   │   ├── prisma/      # Database Connection
+│   │   ├── auth/        # HIPAA-compliant authentication
+│   │   ├── labs/        # AI-powered lab analysis
+│   │   ├── patients/    # Patient profile management
 │   │   └── ...
-│   └── prisma/
-│       └── schema.prisma # DB Schema (SQLite)
-├── web/                 # Next.js frontend
-│   ├── app/             # App Router pages
-│   ├── components/      # Shadcn & Custom v0 Components
-│   └── lib/             # Utils & Hooks
-├── docs/                # Technical Documentation
-│   └── AI_TELEHEALTH_SPEC.md  # AI Telehealth System Spec
+│   └── prisma/          # Database schema and migrations
+├── web/                 # Next.js frontend application
+│   ├── app/             # App Router pages and layouts
+│   ├── components/      # Reusable UI components
+│   └── lib/             # Utility functions and hooks
+├── docs/                # Project documentation
+│   ├── API_DOCUMENTATION.md
+│   ├── HIPAA_COMPLIANCE.md
+│   └── ...
 └── README.md
 ```
+
+---
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 20+
-- (Optional) Docker for PostgreSQL production
+- Docker (for PostgreSQL in production)
 
 ### Quick Start (Local Development)
 
-1. **Backend (API)**
-   ```bash
-   cd api
-   npm install
-   # Initialize SQLite DB
-   npx prisma migrate dev --name init
-   # Start Server (Port 3001)
-   npm run start:dev
-   ```
+1.  **Clone the repository:**
+    ```bash
+    gh repo clone rajbrades/AdonisHealth_New
+    cd AdonisHealth_New
+    ```
 
-2. **Frontend (Web)**
-   ```bash
-   cd web
-   npm install
-   # Start Server (Port 3000)
-   npm run dev
-   ```
+2.  **Configure Backend (API):**
+    ```bash
+    cd api
+    cp .env.example .env
+    # Edit .env with your local settings (e.g., JWT_SECRET)
+    npm install
+    npx prisma migrate dev --name init
+    npm run start:dev
+    ```
+    The API will be running at `http://localhost:3001`.
 
-3. **Verify**
-   - Frontend: [http://localhost:3000](http://localhost:3000)
-   - API: [http://localhost:3001](http://localhost:3001)
+3.  **Configure Frontend (Web):**
+    ```bash
+    cd ../web
+    npm install
+    npm run dev
+    ```
+    The web application will be running at `http://localhost:3000`.
+
+---
+
+## API Overview
+
+The backend API is built with NestJS and provides a comprehensive set of endpoints for managing users, patients, labs, and more. All endpoints are secured with our HIPAA-compliant authentication system.
+
+For detailed information on all available endpoints, request schemas, and response formats, please refer to the [API Documentation](docs/API_DOCUMENTATION.md).
+
+### Authentication API
+
+The authentication API provides endpoints for:
+- User registration and login
+- Secure session management with JWT
+- Password management
+- Role-based access control
+
+---
 
 ## Environment Variables
 
-### API (`api/.env`)
-```env
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="supersecret_dev_key"
-PORT=3001
-```
+This project uses environment variables for configuration. A complete list of required variables can be found in the `.env.example` file in the `api` directory.
 
-### Web (`web/.env.local`)
-*(None currently required)*
+### Key Variables
 
-## Design Updates (v0.app)
+- `DATABASE_URL`: The connection string for your database.
+- `JWT_SECRET`: A secure, random string for signing JWT tokens.
+- `ANTHROPIC_API_KEY`: Your API key for Anthropic Claude.
 
-The frontend design is powered by **v0.app**. To update the design:
-1. Export the project from v0.app as a zip.
-2. Place `adonis-health-platform.zip` in the root directory.
-3. Run the sync workflow (see `.agent/workflows/sync_v0_design.md`).
+---
 
 ## License
 
-UNLICENSED - Private repository
+This project is unlicensed and is a private repository.
