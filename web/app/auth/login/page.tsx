@@ -11,54 +11,40 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const router = useRouter()
     const { toast } = useToast()
+    const { login } = useAuth()
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
         setIsLoading(true)
 
         const formData = new FormData(event.currentTarget)
-        const email = formData.get("email")
-        const password = formData.get("password")
+        const email = formData.get("email") as string
+        const password = formData.get("password") as string
 
         try {
-            const response = await fetch("http://localhost:3001/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            })
-
-            if (!response.ok) {
-                throw new Error("Invalid credentials")
-            }
-
-            const data = await response.json()
-
-            // Store token (basic implementation, normally use secure cookies)
-            localStorage.setItem("accessToken", data.access_token)
-            localStorage.setItem("user", JSON.stringify(data.user))
+            await login({ email, password })
 
             toast({
                 title: "Login Successful",
                 description: "Welcome back to ADONIS Health.",
             })
 
-            // Redirect to dashboard (or home for now)
-            router.push("/")
+            // Redirect to patient dashboard
+            router.push("/patient")
             router.refresh()
 
         } catch (error) {
             toast({
                 variant: "destructive",
                 title: "Login Failed",
-                description: "Please check your email and password.",
+                description: error instanceof Error ? error.message : "Please check your email and password.",
             })
         } finally {
             setIsLoading(false)
