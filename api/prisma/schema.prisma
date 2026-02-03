@@ -413,7 +413,12 @@ model AuditLog {
   action    String   // VIEW_LAB, EDIT_NOTE, LOGIN, CREATE_QUOTE
   resource  String   // /labs/123
   ipAddress String?
+  metadata  String?  // JSON string for additional context
   timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
 }
 
 model CheckIn {

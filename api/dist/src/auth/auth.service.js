@@ -46,21 +46,29 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("../prisma/prisma.service");
+const audit_service_1 = require("../audit/audit.service");
+const password_validator_1 = require("./password.validator");
 const bcrypt = __importStar(require("bcrypt"));
 let AuthService = class AuthService {
     prisma;
     jwtService;
-    constructor(prisma, jwtService) {
+    auditService;
+    BCRYPT_ROUNDS = 10;
+    MAX_LOGIN_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS || '5', 10);
+    LOCKOUT_DURATION_MINUTES = parseInt(process.env.LOCKOUT_DURATION_MINUTES || '30', 10);
+    constructor(prisma, jwtService, auditService) {
         this.prisma = prisma;
         this.jwtService = jwtService;
+        this.auditService = auditService;
     }
-    async register(registerDto) {
+    async register(registerDto, ipAddress) {
         const { email, password, firstName, lastName, dob, gender } = registerDto;
         const existingUser = await this.prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             throw new common_1.ConflictException('User with this email already exists');
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
+        password_validator_1.PasswordValidator.validate(password);
+        const hashedPassword = await bcrypt.hash(password, this.BCRYPT_ROUNDS);
         const user = await this.prisma.user.create({
             data: {
                 email,
@@ -74,32 +82,46 @@ let AuthService = class AuthService {
                         gender,
                         goals: {
                             create: [
-                                ...(registerDto.goals || []).map(g => ({ type: 'SHORT_TERM', description: g, status: 'ACTIVE' })),
-                                ...(registerDto.symptoms || []).map(s => ({ type: 'SYMPTOM', description: s, status: 'ACTIVE' }))
+                                ...(registerDto.goals || []).map(g => ({
+                                    type: 'SHORT_TERM',
+                                    description: g,
+                                    status: 'ACTIVE'
+                                })),
+                                ...(registerDto.symptoms || []).map(s => ({
+                                    type: 'SYMPTOM',
+                                    description: s,
+                                    status: 'ACTIVE'
+                                }))
                             ]
                         }
                     },
                 },
             },
         });
-        return this.login({ email, password });
+        await this.auditService.log(user.id, audit_service_1.AuditAction.REGISTER, `user:${user.id}`, ipAddress, { email, role: user.role });
+        return this.login({ email, password }, ipAddress);
     }
-    async validateUser(email, pass) {
+    async validateUser(email, password) {
         const user = await this.prisma.user.findUnique({ where: { email } });
-        if (user && (await bcrypt.compare(pass, user.password))) {
-            const { password, ...result } = user;
+        if (user && (await bcrypt.compare(password, user.password))) {
+            const { password: _, ...result } = user;
             return result;
         }
         return null;
     }
-    async login(loginDto) {
-        const user = await this.validateUser(loginDto.email, loginDto.password);
+    async login(loginDto, ipAddress) {
+        const { email, password } = loginDto;
+        await this.checkAccountLockout(email);
+        const user = await this.validateUser(email, password);
         if (!user) {
+            await this.logFailedLoginAttempt(email, ipAddress);
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
         const payload = { email: user.email, sub: user.id, role: user.role };
+        const access_token = this.jwtService.sign(payload);
+        await this.auditService.log(user.id, audit_service_1.AuditAction.LOGIN, `user:${user.id}`, ipAddress, { email: user.email, role: user.role });
         return {
-            access_token: this.jwtService.sign(payload),
+            access_token,
             user: {
                 id: user.id,
                 email: user.email,
@@ -107,11 +129,92 @@ let AuthService = class AuthService {
             }
         };
     }
+    async logout(userId, ipAddress) {
+        await this.auditService.log(userId, audit_service_1.AuditAction.LOGOUT, `user:${userId}`, ipAddress);
+        return { message: 'Logged out successfully' };
+    }
+    async changePassword(userId, currentPassword, newPassword, ipAddress) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found');
+        }
+        const isValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isValid) {
+            throw new common_1.UnauthorizedException('Current password is incorrect');
+        }
+        password_validator_1.PasswordValidator.validate(newPassword);
+        if (currentPassword === newPassword) {
+            throw new common_1.BadRequestException('New password must be different from current password');
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, this.BCRYPT_ROUNDS);
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword },
+        });
+        await this.auditService.log(userId, audit_service_1.AuditAction.PASSWORD_CHANGE, `user:${userId}`, ipAddress);
+        return { message: 'Password changed successfully' };
+    }
+    async checkAccountLockout(email) {
+        const lockoutStart = new Date(Date.now() - this.LOCKOUT_DURATION_MINUTES * 60 * 1000);
+        const recentFailedAttempts = await this.auditService.getFailedLoginAttempts(email, lockoutStart);
+        if (recentFailedAttempts.length >= this.MAX_LOGIN_ATTEMPTS) {
+            const oldestAttempt = recentFailedAttempts[recentFailedAttempts.length - 1];
+            const unlockTime = new Date(oldestAttempt.timestamp.getTime() + this.LOCKOUT_DURATION_MINUTES * 60 * 1000);
+            const minutesRemaining = Math.ceil((unlockTime.getTime() - Date.now()) / 60000);
+            throw new common_1.UnauthorizedException(`Account is locked due to too many failed login attempts. Please try again in ${minutesRemaining} minutes.`);
+        }
+    }
+    async logFailedLoginAttempt(email, ipAddress) {
+        const systemUserId = 'system';
+        await this.auditService.log(systemUserId, audit_service_1.AuditAction.LOGIN_FAILED, `login:${email}`, ipAddress, { email, timestamp: new Date().toISOString() });
+    }
+    async getUserProfile(userId) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                role: true,
+                createdAt: true,
+                patientProfile: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        dob: true,
+                        gender: true,
+                        phone: true,
+                        address: true,
+                    },
+                },
+                providerProfile: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        specialty: true,
+                    },
+                },
+                conciergeProfile: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                    },
+                },
+            },
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found');
+        }
+        return user;
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        audit_service_1.AuditService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map
