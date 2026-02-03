@@ -62,7 +62,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = async () => {
     await apiClient.logout();
     setUser(null);
-    router.push('/auth/login');
+    router.push('/');
   };
 
   const refreshUser = async () => {
