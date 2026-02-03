@@ -113,13 +113,15 @@ export function Header() {
           </div>
 
           <div className="hidden items-center gap-4 lg:flex">
-            <Button
-              variant="ghost"
-              className="text-sm lg:text-base text-foreground hover:text-primary hover:bg-transparent gap-2"
-            >
-              <User className="h-4 w-4" />
-              Patient Login
-            </Button>
+            <Link href="/auth/login">
+              <Button
+                variant="ghost"
+                className="text-sm lg:text-base text-foreground hover:text-primary hover:bg-transparent gap-2"
+              >
+                <User className="h-4 w-4" />
+                Patient Login
+              </Button>
+            </Link>
             <Link href="/get-started">
               <Button className="bg-primary text-background hover:bg-primary/90 text-sm lg:text-base h-10 lg:h-11 px-4 lg:px-6 font-semibold">
                 Get Started
@@ -171,10 +173,12 @@ export function Header() {
               ))}
 
               <div className="flex flex-col gap-4 pt-8">
-                <Button variant="outline" className="w-full h-12 justify-center gap-2 text-base bg-transparent">
-                  <User className="h-5 w-5" />
-                  Patient Login
-                </Button>
+                <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full h-12 justify-center gap-2 text-base bg-transparent">
+                    <User className="h-5 w-5" />
+                    Patient Login
+                  </Button>
+                </Link>
                 <Link href="/get-started" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full h-12 bg-primary text-background font-semibold text-base">
                     Get Started

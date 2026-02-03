@@ -26,8 +26,8 @@ export declare class AuthController {
         message: string;
     }>;
     getProfile(req: any): Promise<{
-        email: string;
         id: string;
+        email: string;
         role: string;
         createdAt: Date;
         patientProfile: {
