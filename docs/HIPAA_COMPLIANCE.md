@@ -1,6 +1,6 @@
 # HIPAA Compliance Implementation Guide
 
-**Version: 1.1** | **Last Updated: February 3, 2026**
+**Version: 1.2** | **Last Updated: February 3, 2026**
 
 ## 1. Introduction
 
@@ -20,7 +20,7 @@ Administrative safeguards are the policies and procedures that guide our workfor
 |---|---|---|
 | **Access Control** | §164.308(a)(3) | A stringent Role-Based Access Control (RBAC) system is in place, limiting data access to the minimum necessary for job function. Roles include `ADMIN`, `PATIENT`, `PROVIDER`, and `CONCIERGE`. User access is managed via JWT and secure token policies. |
 | **Audit Controls** | §164.308(a)(1)(ii)(D) | All actions involving PHI are recorded in an immutable `AuditLog`. This includes user logins, data access, and modifications, capturing the user, action, resource, IP address, and timestamp. |
-| **Authentication** | §164.308(a)(2) | User authentication is enforced through a combination of unique email identifiers, strong password hashing (bcrypt), and time-sensitive JWT tokens (60-minute expiration). |
+| **Authentication** | §164.308(a)(2) | User authentication is enforced through a combination of unique email identifiers, strong password hashing (bcrypt), and time-sensitive JWT tokens (60-minute expiration). For a detailed status of authentication features, see the [Authentication Feature Status](AUTHENTICATION_FEATURES.md) document. |
 
 ### 2.2. Technical Safeguards
 
@@ -58,27 +58,7 @@ Proper data classification is critical for applying appropriate security control
 
 ## 4. Security Implementation Status
 
-This checklist tracks the implementation status of our security controls.
-
-### Authentication & Authorization
-- [x] **Bcrypt Password Hashing**: Implemented with a salt round of 10.
-- [x] **JWT Token Authentication**: Implemented with a 60-minute expiration.
-- [x] **Role-Based Access Control (RBAC)**: Fully implemented and enforced.
-- [x] **Account Lockout**: Implemented after 5 failed login attempts.
-- [x] **Password Complexity Enforcement**: Implemented and validated.
-- [ ] **Multi-Factor Authentication (MFA)**: Planned for future implementation.
-
-### Audit Logging
-- [x] **AuditLog Model**: Created with comprehensive fields.
-- [x] **Authentication Event Logging**: All auth events are logged.
-- [ ] **PHI Access Logging**: Middleware to be implemented for all PHI access.
-- [ ] **Audit Log Retention Policy (6 years)**: To be implemented via automated scripts.
-
-### Data Encryption
-- [x] **Password Hashing**: Implemented.
-- [ ] **Database Encryption at Rest**: To be configured in production PostgreSQL.
-- [ ] **TLS 1.2+ for Data in Transit**: To be enforced in production environment.
-- [ ] **Encrypted S3 Storage (AES-256)**: To be configured in production.
+For a detailed breakdown of the implementation status of our authentication features, please refer to the [Authentication Feature Status](AUTHENTICATION_FEATURES.md) document.
 
 ---
 

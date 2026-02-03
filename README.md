@@ -6,7 +6,7 @@
 
 ## Features
 
-- **HIPAA-Compliant Authentication**: Secure user registration and login with JWT, RBAC, password validation, and comprehensive audit logging.
+- **HIPAA-Compliant Authentication**: Secure user registration and login with JWT, RBAC, password validation, and comprehensive audit logging. For a detailed status of authentication features, see the [Authentication Feature Status](docs/AUTHENTICATION_FEATURES.md) document.
 - **AI-Powered Lab Analysis**: Automated extraction and interpretation of lab results from PDF reports.
 - **Patient & Provider Portals**: Dedicated interfaces for patients to manage their health and for providers to manage their patients.
 - **Telehealth Encounter System**: Planned integration with Zoom for real-time video consultations.
@@ -45,6 +45,7 @@ AdonisHealth_New/
 │   └── lib/             # Utility functions and hooks
 ├── docs/                # Project documentation
 │   ├── API_DOCUMENTATION.md
+│   ├── AUTHENTICATION_FEATURES.md
 │   ├── HIPAA_COMPLIANCE.md
 │   └── ...
 └── README.md
@@ -101,6 +102,8 @@ The authentication API provides endpoints for:
 - Secure session management with JWT
 - Password management
 - Role-based access control
+
+For a detailed status of all authentication features, please refer to the [Authentication Feature Status](docs/AUTHENTICATION_FEATURES.md) document.
 
 ---
 
