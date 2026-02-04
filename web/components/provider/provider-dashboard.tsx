@@ -169,7 +169,7 @@ export function ProviderDashboard() {
         </div>
 
         {/* Population Metrics */}
-        <div className="border border-border">
+        {/* <div className="border border-border">
           <div className="p-4 border-b border-border">
             <h2 className="font-bold text-foreground">Population Metrics</h2>
             <p className="text-xs text-muted-foreground">Across all active patients</p>
@@ -194,55 +194,55 @@ export function ProviderDashboard() {
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        </div> */}
 
-      {/* Medication Requests */}
-      <MedicationRequests compact />
 
-      {/* Recent Labs */}
-      <div className="border border-border">
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          <h2 className="font-bold text-foreground">Recent Lab Results</h2>
-          <Link href="/provider/labs" className="text-sm text-primary hover:underline flex items-center gap-1">
-            View all <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-3 gap-px bg-border">
-          {recentLabs.map((lab) => (
-            <div
-              key={lab.id}
-              className={`bg-background p-4 ${lab.status === "flagged" ? "border-l-2 border-red-500" : ""}`}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="font-medium text-foreground">{lab.name}</p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="w-3 h-3" />
-                    {lab.date}
+        {/* Medication Requests */}
+        <MedicationRequests compact />
+
+        {/* Recent Labs */}
+        <div className="border border-border">
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <h2 className="font-bold text-foreground">Recent Lab Results</h2>
+            <Link href="/provider/labs" className="text-sm text-primary hover:underline flex items-center gap-1">
+              View all <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-px bg-border">
+            {recentLabs.map((lab) => (
+              <div
+                key={lab.id}
+                className={`bg-background p-4 ${lab.status === "flagged" ? "border-l-2 border-red-500" : ""}`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="font-medium text-foreground">{lab.name}</p>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      {lab.date}
+                    </div>
+                  </div>
+                  <span
+                    className={`text-xs font-mono uppercase px-2 py-1 ${lab.status === "optimal" ? "text-green-500 bg-green-500/10" : "text-red-500 bg-red-500/10"
+                      }`}
+                  >
+                    {lab.status}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">{lab.summary}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-muted/50 p-2">
+                    <p className="text-xs text-muted-foreground">Total T</p>
+                    <p className="font-bold text-foreground">{lab.totalT} ng/dL</p>
+                  </div>
+                  <div className="bg-muted/50 p-2">
+                    <p className="text-xs text-muted-foreground">Free T</p>
+                    <p className="font-bold text-foreground">{lab.freeT} pg/mL</p>
                   </div>
                 </div>
-                <span
-                  className={`text-xs font-mono uppercase px-2 py-1 ${
-                    lab.status === "optimal" ? "text-green-500 bg-green-500/10" : "text-red-500 bg-red-500/10"
-                  }`}
-                >
-                  {lab.status}
-                </span>
               </div>
-              <p className="text-sm text-muted-foreground mb-3">{lab.summary}</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-muted/50 p-2">
-                  <p className="text-xs text-muted-foreground">Total T</p>
-                  <p className="font-bold text-foreground">{lab.totalT} ng/dL</p>
-                </div>
-                <div className="bg-muted/50 p-2">
-                  <p className="text-xs text-muted-foreground">Free T</p>
-                  <p className="font-bold text-foreground">{lab.freeT} pg/mL</p>
-                </div>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
