@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useState } from "react"
+import { TimelineFeed } from "@/components/patient/timeline-feed"
 
 // Mock patient data
 const patientData = {
@@ -275,31 +276,27 @@ export function PatientOnePager({ patientId }: { patientId: string }) {
             </div>
           </div>
 
-          {/* Clinical Notes */}
+          {/* Timeline Feed */}
           <div className="border border-border">
-            <div className="p-4 border-b border-border">
-              <h2 className="font-bold text-foreground">Clinical Notes</h2>
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <h2 className="font-bold text-foreground">Patient Timeline</h2>
             </div>
-            <div className="divide-y divide-border">
-              {patientData.recentNotes.map((note, index) => (
-                <div key={index} className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">{note.date}</span>
-                    <span className="text-sm font-medium text-foreground">- {note.author}</span>
-                  </div>
-                  <p className="text-foreground">{note.note}</p>
-                </div>
-              ))}
-            </div>
-            <div className="p-4 border-t border-border">
+
+            {/* Quick Note Entry */}
+            <div className="p-4 border-b border-border bg-muted/10">
               <Textarea
-                placeholder="Add clinical note..."
+                placeholder="Add a quick note..."
                 value={clinicalNote}
                 onChange={(e) => setClinicalNote(e.target.value)}
-                className="bg-muted/50 border-border mb-3"
+                className="bg-background border-border mb-2 min-h-[80px]"
               />
-              <Button className="bg-primary text-background hover:bg-primary/90">Add Note</Button>
+              <div className="flex justify-end">
+                <Button size="sm" className="bg-primary text-background hover:bg-primary/90">Post Note</Button>
+              </div>
+            </div>
+
+            <div className="p-4">
+              <TimelineFeed patientId={patientId} />
             </div>
           </div>
         </div>

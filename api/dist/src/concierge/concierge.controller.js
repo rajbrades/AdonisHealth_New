@@ -27,6 +27,9 @@ let ConciergeController = class ConciergeController {
     getTrends(id) {
         return this.conciergeService.getPatientTrends(id);
     }
+    getTimeline(id) {
+        return this.conciergeService.getPatientTimeline(id);
+    }
 };
 exports.ConciergeController = ConciergeController;
 __decorate([
@@ -43,6 +46,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ConciergeController.prototype, "getTrends", null);
+__decorate([
+    (0, common_1.Get)('patient/:id/timeline'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ConciergeController.prototype, "getTimeline", null);
 exports.ConciergeController = ConciergeController = __decorate([
     (0, common_1.Controller)('concierge'),
     __metadata("design:paramtypes", [concierge_service_1.ConciergeService])

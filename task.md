@@ -56,8 +56,18 @@
 - [x] Labs API with PDF extraction and biomarker matching
 
 ### In Progress
-- [ ] Build patient dashboard UI
-- [ ] Build provider portal UI
+- [ ] **AI-Clinical Core (Phase 2)**
+  - [ ] **Data Infrastructure**
+    - [ ] `GET /timeline` endpoint implementation (Visits + Labs + Notes)
+    - [ ] Lab Result standardization logic
+  - [ ] **AI Services**
+    - [x] Pre-Visit Briefing Generator (LLM Prompts & Logic)
+    - [x] Lab Analysis Agent (Correlating markers)
+  - [ ] **UI Components**
+    - [x] `TimelineFeed` (Longitudinal Patient View)
+    - [ ] `TrendGraph` (Visualizing vitals/labs)
+    - [x] `BriefingCard` (Provider Prep View)
+- [ ] Build patient dashboard UI (incorporating TimelineFeed)
 - [ ] Connect frontend to authentication API
 
 ### Backlog

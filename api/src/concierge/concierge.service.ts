@@ -56,4 +56,77 @@ export class ConciergeService {
             orderBy: { date: 'asc' },
         });
     }
+
+    async getPatientTimeline(patientId: string) {
+        // 1. Fetch all event types concurrently
+        const [notes, labs, checkIns, appointments] = await Promise.all([
+            this.prisma.clinicalNote.findMany({
+                where: { patientId },
+                include: { provider: true, concierge: true },
+                orderBy: { createdAt: 'desc' },
+            }),
+            this.prisma.labPanel.findMany({
+                where: { patientId },
+                orderBy: { collectionDate: 'desc' },
+            }),
+            this.prisma.checkIn.findMany({
+                where: { patientId },
+                include: { metrics: true },
+                orderBy: { date: 'desc' },
+            }),
+            this.prisma.appointment.findMany({
+                where: { patientId },
+                orderBy: { scheduledAt: 'desc' },
+            }),
+        ]);
+
+        // 2. Normalize to TimelineEvent interface
+        const events = [
+            ...notes.map(n => ({
+                id: n.id,
+                type: 'NOTE' as const,
+                date: n.createdAt,
+                title: n.assessment || 'Clinical Note',
+                subtitle: n.plan,
+                metadata: {
+                    author: n.provider ? `Dr. ${n.provider.lastName}` : 'Concierge',
+                    status: n.status
+                }
+            })),
+            ...labs.map(l => ({
+                id: l.id,
+                type: 'LAB' as const,
+                date: l.collectionDate,
+                title: l.panelName,
+                subtitle: l.status,
+                metadata: {
+                    provider: l.provider,
+                    status: l.status
+                }
+            })),
+            ...checkIns.map(c => ({
+                id: c.id,
+                type: 'CHECK_IN' as const,
+                date: c.date,
+                title: `${c.type} Check-In`,
+                subtitle: c.notes,
+                metadata: {
+                    metrics: c.metrics
+                }
+            })),
+            ...appointments.map(a => ({
+                id: a.id,
+                type: 'APPOINTMENT' as const,
+                date: a.scheduledAt,
+                title: a.type,
+                subtitle: a.status,
+                metadata: {
+                    status: a.status
+                }
+            }))
+        ];
+
+        // 3. Sort by date descending
+        return events.sort((a, b) => b.date.getTime() - a.date.getTime());
+    }
 }

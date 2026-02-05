@@ -15,4 +15,9 @@ export class ConciergeController {
     getTrends(@Param('id') id: string) {
         return this.conciergeService.getPatientTrends(id);
     }
+
+    @Get('patient/:id/timeline')
+    getTimeline(@Param('id') id: string) {
+        return this.conciergeService.getPatientTimeline(id);
+    }
 }

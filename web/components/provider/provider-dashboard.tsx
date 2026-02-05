@@ -10,6 +10,7 @@ import {
   TrendingUp,
   TrendingDown,
   Clock,
+  Sparkles,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MedicationRequests } from "./medication-requests"
@@ -195,6 +196,39 @@ export function ProviderDashboard() {
             ))}
           </div>
         </div> */}
+
+
+        {/* Upcoming Appointments (New Feature) */}
+        <div className="col-span-1 border border-border">
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <h2 className="font-bold text-foreground">Next Appointments</h2>
+          </div>
+          <div className="divide-y divide-border">
+            <div className="p-4 hover:bg-muted/30 transition-colors">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <p className="font-medium">John Doe</p>
+                  <p className="text-sm text-muted-foreground">Consultation (Follow-up)</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold">10:00 AM</p>
+                  <p className="text-xs text-green-600">Confirmed</p>
+                </div>
+              </div>
+              <div className="mb-3">
+                <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs border border-blue-100">
+                  <Sparkles className="w-3 h-3" />
+                  Briefing Ready
+                </div>
+              </div>
+              <Link href="/provider/consultations/2745a5aa-3da0-43a5-82cf-5759a72d968f">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" size="sm">
+                  Start Visit
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
 
 
         {/* Medication Requests */}

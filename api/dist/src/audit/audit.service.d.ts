@@ -41,10 +41,10 @@ export declare class AuditService {
     } & {
         id: string;
         userId: string;
+        metadata: string | null;
         action: string;
         resource: string;
         ipAddress: string | null;
-        metadata: string | null;
         timestamp: Date;
     })[]>;
     getResourceAuditLogs(resource: string, limit?: number): Promise<({
@@ -55,10 +55,10 @@ export declare class AuditService {
     } & {
         id: string;
         userId: string;
+        metadata: string | null;
         action: string;
         resource: string;
         ipAddress: string | null;
-        metadata: string | null;
         timestamp: Date;
     })[]>;
     getAuditLogsByAction(action: AuditAction, limit?: number): Promise<({
@@ -69,10 +69,10 @@ export declare class AuditService {
     } & {
         id: string;
         userId: string;
+        metadata: string | null;
         action: string;
         resource: string;
         ipAddress: string | null;
-        metadata: string | null;
         timestamp: Date;
     })[]>;
     getAuditLogsByDateRange(startDate: Date, endDate: Date): Promise<({
@@ -83,19 +83,19 @@ export declare class AuditService {
     } & {
         id: string;
         userId: string;
+        metadata: string | null;
         action: string;
         resource: string;
         ipAddress: string | null;
-        metadata: string | null;
         timestamp: Date;
     })[]>;
     getFailedLoginAttempts(email: string, since: Date): Promise<{
         id: string;
         userId: string;
+        metadata: string | null;
         action: string;
         resource: string;
         ipAddress: string | null;
-        metadata: string | null;
         timestamp: Date;
     }[]>;
 }

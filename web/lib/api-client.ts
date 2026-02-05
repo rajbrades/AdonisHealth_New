@@ -185,11 +185,21 @@ class ApiClient {
     });
   }
 
+  async getBriefing(appointmentId: string): Promise<any> {
+    return this.request(`/ai/appointments/${appointmentId}/briefing`, {
+      method: 'POST' // Triggering generation on view for demo purposes
+    });
+  }
+
   /**
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
     return !!this.getToken();
+  }
+
+  async getTimeline(patientId: string): Promise<any[]> {
+    return this.request<any[]>(`/concierge/patient/${patientId}/timeline`);
   }
 }
 

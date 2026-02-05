@@ -7,16 +7,16 @@ export declare class PatientsService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            patientId: string;
             status: string;
-            conciergeId: string | null;
-            providerId: string | null;
             chiefComplaint: string | null;
             history: string | null;
             subjective: string | null;
             objective: string | null;
             assessment: string | null;
             plan: string | null;
+            patientId: string;
+            providerId: string | null;
+            conciergeId: string | null;
         }[];
         user: {
             email: string;
@@ -25,18 +25,18 @@ export declare class PatientsService {
         };
         labResults: {
             id: string;
-            patientId: string;
             status: string;
-            testDate: Date;
+            patientId: string;
             providerId: string | null;
             uploadedAt: Date;
+            testDate: Date;
         }[];
         orders: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            patientId: string;
             status: string;
+            patientId: string;
             totalAmount: number;
             fulfillmentId: string | null;
             trackingUrl: string | null;
@@ -56,16 +56,16 @@ export declare class PatientsService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            patientId: string;
             status: string;
-            conciergeId: string | null;
-            providerId: string | null;
             chiefComplaint: string | null;
             history: string | null;
             subjective: string | null;
             objective: string | null;
             assessment: string | null;
             plan: string | null;
+            patientId: string;
+            providerId: string | null;
+            conciergeId: string | null;
         }[];
         user: {
             id: string;
@@ -75,18 +75,18 @@ export declare class PatientsService {
         };
         labResults: {
             id: string;
-            patientId: string;
             status: string;
-            testDate: Date;
+            patientId: string;
             providerId: string | null;
             uploadedAt: Date;
+            testDate: Date;
         }[];
         orders: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            patientId: string;
             status: string;
+            patientId: string;
             totalAmount: number;
             fulfillmentId: string | null;
             trackingUrl: string | null;
@@ -96,30 +96,30 @@ export declare class PatientsService {
             description: string;
             createdAt: Date;
             updatedAt: Date;
-            type: string;
-            patientId: string;
             status: string;
+            patientId: string;
+            type: string;
         }[];
         regimen: {
             id: string;
             name: string;
+            patientId: string;
             type: string;
+            notes: string | null;
             dosage: string | null;
             frequency: string | null;
             source: string;
             active: boolean;
             startDate: Date | null;
             endDate: Date | null;
-            notes: string | null;
-            patientId: string;
             productId: string | null;
         }[];
         wearableData: {
             id: string;
-            source: string;
             patientId: string;
             date: Date;
             metrics: string;
+            source: string;
             syncedAt: Date;
         }[];
     } & {

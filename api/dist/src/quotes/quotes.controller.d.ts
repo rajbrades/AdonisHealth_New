@@ -24,9 +24,9 @@ export declare class QuotesController {
                 id: string;
                 name: string;
                 description: string | null;
+                type: string;
                 sku: string;
                 price: number;
-                type: string;
             };
         } & {
             id: string;
@@ -39,11 +39,11 @@ export declare class QuotesController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        patientId: string;
         status: string;
+        patientId: string;
+        conciergeId: string;
         validUntil: Date | null;
         totalAmount: number;
-        conciergeId: string;
     }>;
     findAll(): Promise<({
         patient: {
@@ -81,11 +81,11 @@ export declare class QuotesController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        patientId: string;
         status: string;
+        patientId: string;
+        conciergeId: string;
         validUntil: Date | null;
         totalAmount: number;
-        conciergeId: string;
     })[]>;
     findOne(id: string): Promise<({
         patient: {
@@ -98,14 +98,20 @@ export declare class QuotesController {
             phone: string | null;
             address: string | null;
         };
+        concierge: {
+            id: string;
+            userId: string;
+            firstName: string;
+            lastName: string;
+        };
         items: ({
             product: {
                 id: string;
                 name: string;
                 description: string | null;
+                type: string;
                 sku: string;
                 price: number;
-                type: string;
             };
         } & {
             id: string;
@@ -122,20 +128,14 @@ export declare class QuotesController {
             amount: number;
             paidAt: Date | null;
         } | null;
-        concierge: {
-            id: string;
-            userId: string;
-            firstName: string;
-            lastName: string;
-        };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        patientId: string;
         status: string;
+        patientId: string;
+        conciergeId: string;
         validUntil: Date | null;
         totalAmount: number;
-        conciergeId: string;
     }) | null>;
 }
