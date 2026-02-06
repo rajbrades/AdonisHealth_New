@@ -18,6 +18,7 @@ async function main() {
             email: 'patient@example.com',
             password: patientPassword,
             role: 'PATIENT',
+            passwordChangedAt: new Date(),
         },
     });
 
@@ -28,6 +29,7 @@ async function main() {
             email: 'dr.stone@adonis.health',
             password: providerPassword,
             role: 'PROVIDER',
+            passwordChangedAt: new Date(),
         },
     });
 
