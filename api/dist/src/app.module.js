@@ -17,12 +17,14 @@ const quotes_module_1 = require("./quotes/quotes.module");
 const concierge_module_1 = require("./concierge/concierge.module");
 const audit_module_1 = require("./audit/audit.module");
 const labs_module_1 = require("./labs/labs.module");
+const lab_orders_module_1 = require("./lab-orders/lab-orders.module");
+const email_module_1 = require("./email/email.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, auth_module_1.AuthModule, patients_module_1.PatientsModule, quotes_module_1.QuotesModule, concierge_module_1.ConciergeModule, audit_module_1.AuditModule, labs_module_1.LabsModule],
+        imports: [prisma_module_1.PrismaModule, auth_module_1.AuthModule, patients_module_1.PatientsModule, quotes_module_1.QuotesModule, concierge_module_1.ConciergeModule, audit_module_1.AuditModule, labs_module_1.LabsModule, lab_orders_module_1.LabOrdersModule, email_module_1.EmailModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })

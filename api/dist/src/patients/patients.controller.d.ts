@@ -28,8 +28,8 @@ export declare class PatientsController {
             patientId: string;
             status: string;
             testDate: Date;
-            providerId: string | null;
             uploadedAt: Date;
+            providerId: string | null;
         }[];
         orders: {
             id: string;
@@ -38,6 +38,7 @@ export declare class PatientsController {
             patientId: string;
             status: string;
             totalAmount: number;
+            quoteId: string | null;
             fulfillmentId: string | null;
             trackingUrl: string | null;
         }[];
@@ -78,8 +79,8 @@ export declare class PatientsController {
             patientId: string;
             status: string;
             testDate: Date;
-            providerId: string | null;
             uploadedAt: Date;
+            providerId: string | null;
         }[];
         orders: {
             id: string;
@@ -88,6 +89,7 @@ export declare class PatientsController {
             patientId: string;
             status: string;
             totalAmount: number;
+            quoteId: string | null;
             fulfillmentId: string | null;
             trackingUrl: string | null;
         }[];
