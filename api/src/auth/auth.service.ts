@@ -12,6 +12,7 @@ export class AuthService {
   private readonly BCRYPT_ROUNDS = 10;
   private readonly MAX_LOGIN_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS || '5', 10);
   private readonly LOCKOUT_DURATION_MINUTES = parseInt(process.env.LOCKOUT_DURATION_MINUTES || '30', 10);
+  private readonly PASSWORD_EXPIRATION_DAYS = parseInt(process.env.PASSWORD_EXPIRATION_DAYS || '90', 10);
 
   constructor(
     private prisma: PrismaService,
@@ -43,6 +44,7 @@ export class AuthService {
         email,
         password: hashedPassword,
         role: 'PATIENT',
+        passwordChangedAt: new Date(), // Track password creation time
         patientProfile: {
           create: {
             firstName,
@@ -104,11 +106,28 @@ export class AuthService {
 
     // Validate credentials
     const user = await this.validateUser(email, password);
-    
+
     if (!user) {
       // Log failed login attempt
       await this.logFailedLoginAttempt(email, ipAddress);
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Check password expiration
+    const passwordExpired = this.checkPasswordExpiration(user.passwordChangedAt);
+    if (passwordExpired) {
+      // Audit log: Password expired login attempt
+      await this.auditService.log(
+        user.id,
+        AuditAction.LOGIN,
+        `user:${user.id}`,
+        ipAddress,
+        { email: user.email, passwordExpired: true },
+      );
+
+      throw new UnauthorizedException(
+        'Your password has expired. Please change your password to continue.',
+      );
     }
 
     // Generate JWT token
@@ -180,10 +199,13 @@ export class AuthService {
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, this.BCRYPT_ROUNDS);
 
-    // Update password
+    // Update password and track change timestamp
     await this.prisma.user.update({
       where: { id: userId },
-      data: { password: hashedPassword },
+      data: {
+        password: hashedPassword,
+        passwordChangedAt: new Date(),
+      },
     });
 
     // Audit log: Password change
@@ -195,6 +217,21 @@ export class AuthService {
     );
 
     return { message: 'Password changed successfully' };
+  }
+
+  /**
+   * Check if password has expired based on PASSWORD_EXPIRATION_DAYS
+   */
+  private checkPasswordExpiration(passwordChangedAt: Date | null): boolean {
+    // If no passwordChangedAt is set, consider it expired (forces password update)
+    if (!passwordChangedAt) {
+      return true;
+    }
+
+    const expirationDate = new Date(passwordChangedAt);
+    expirationDate.setDate(expirationDate.getDate() + this.PASSWORD_EXPIRATION_DAYS);
+
+    return new Date() > expirationDate;
   }
 
   /**

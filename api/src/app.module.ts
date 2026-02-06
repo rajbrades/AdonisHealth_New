@@ -8,9 +8,11 @@ import { QuotesModule } from './quotes/quotes.module';
 import { ConciergeModule } from './concierge/concierge.module';
 import { AuditModule } from './audit/audit.module';
 import { LabsModule } from './labs/labs.module';
+import { LabOrdersModule } from './lab-orders/lab-orders.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, PatientsModule, QuotesModule, ConciergeModule, AuditModule, LabsModule],
+  imports: [PrismaModule, AuthModule, PatientsModule, QuotesModule, ConciergeModule, AuditModule, LabsModule, LabOrdersModule, EmailModule],
   controllers: [AppController],
   providers: [AppService],
 })

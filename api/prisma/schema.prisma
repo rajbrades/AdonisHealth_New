@@ -8,12 +8,13 @@ generator client {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  role      String   @default("PATIENT") // ADMIN, PATIENT, PROVIDER, CONCIERGE
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  role              String    @default("PATIENT") // ADMIN, PATIENT, PROVIDER, CONCIERGE
+  passwordChangedAt DateTime? // Tracks last password change for expiration policy
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   patientProfile   PatientProfile?
   providerProfile  ProviderProfile?
@@ -35,6 +36,7 @@ model PatientProfile {
 
   labResults    LabResult[]
   labPanels     LabPanel[]    // New lab infrastructure
+  labOrders     LabOrder[]    // Lab test orders
   orders        Order[]
   clinicalNotes ClinicalNote[]
   quotes        Quote[]
@@ -108,6 +110,7 @@ model ProviderProfile {
   reviewedLabs       LabResult[]
   reviewedLabPanels  LabPanel[]  @relation("LabPanelReviewer")
   authoredNotes      ClinicalNote[]
+  orderedLabOrders   LabOrder[]  @relation("LabOrderProvider")
 }
 
 model ConciergeProfile {
@@ -203,6 +206,7 @@ model LabPanel {
   originalFile    LabFile? @relation(fields: [originalFileId], references: [id])
 
   results         LabResultValue[]
+  labOrder        LabOrder?  // Back-relation to originating order
   metadata        String?  // JSON for additional data
 
   createdAt       DateTime @default(now())
@@ -329,6 +333,62 @@ model LabResultValue {
   @@index([biomarkerId])
 }
 
+// ===========================================
+// LAB ORDERS (Manual + Evexia-Ready)
+// ===========================================
+
+model LabOrder {
+  id              String   @id @default(uuid())
+  patientId       String
+  patient         PatientProfile @relation(fields: [patientId], references: [id])
+
+  // Order Details
+  orderNumber     String   @unique // ADONIS-LAB-2026-0001
+  panelName       String   // "Male Hormone Panel", "Comprehensive Metabolic"
+  panelCodes      String?  // JSON array of test codes ["T3", "T4", "TSH"]
+
+  // Lab Provider (Evexia-ready)
+  labProvider     String   @default("EVEXIA") // EVEXIA, QUEST, LABCORP, ACCESS_MEDICAL
+  evexiaOrderId   String?  // External order ID when API is available
+  evexiaStatus    String?  // Synced status from Evexia
+
+  // Pricing
+  price           Float
+  patientPay      Boolean  @default(true) // true = patient pays lab directly
+
+  // Status Workflow
+  status          String   @default("PENDING")
+  // PENDING → REQUISITION_READY → SENT_TO_PATIENT → SAMPLE_COLLECTED →
+  // PROCESSING → RESULTS_RECEIVED → REVIEWED → COMPLETED
+
+  // Requisition
+  requisitionPdfKey String?  // S3/local key for generated PDF
+  requisitionSentAt DateTime?
+
+  // Draw Site
+  drawSiteAddress   String?  // Preferred lab location
+  scheduledDrawDate DateTime?
+  actualDrawDate    DateTime?
+
+  // Results Link
+  labPanelId      String?  @unique // Links to LabPanel when results arrive
+  labPanel        LabPanel? @relation(fields: [labPanelId], references: [id])
+
+  // Ordering Provider (for requisition)
+  orderingProviderId String?
+  orderingProvider   ProviderProfile? @relation("LabOrderProvider", fields: [orderingProviderId], references: [id])
+
+  // Audit
+  notes           String?  // Internal notes
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([status])
+  @@index([labProvider])
+  @@index([orderNumber])
+}
+
 model Product {
   id          String   @id @default(uuid())
   name        String
@@ -358,6 +418,7 @@ model Quote {
 
   items        QuoteItem[]
   invoice      Invoice?
+  orders       Order[]
 }
 
 model QuoteItem {
@@ -390,6 +451,8 @@ model Order {
   totalAmount   Float
   fulfillmentId String? // ID from 3PL
   trackingUrl   String?
+  quoteId       String?
+  quote         Quote?   @relation(fields: [quoteId], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
