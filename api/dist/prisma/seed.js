@@ -47,6 +47,7 @@ async function main() {
             email: 'patient@example.com',
             password: patientPassword,
             role: 'PATIENT',
+            passwordChangedAt: new Date(),
         },
     });
     const providerUser = await prisma.user.upsert({
@@ -56,6 +57,7 @@ async function main() {
             email: 'dr.stone@adonis.health',
             password: providerPassword,
             role: 'PROVIDER',
+            passwordChangedAt: new Date(),
         },
     });
     const patientProfile = await prisma.patientProfile.upsert({
