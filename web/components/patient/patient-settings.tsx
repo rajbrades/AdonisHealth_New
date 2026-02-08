@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Settings, User, Bell, Shield, Save, Eye, EyeOff, MapPin, Phone, Mail } from "lucide-react"
+import { Settings, User, Bell, Shield, Save, Eye, EyeOff, MapPin, Phone, Mail, Scale } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -79,6 +79,7 @@ export function PatientSettings() {
 
   const [profileSaving, setProfileSaving] = useState(false)
   const [phone, setPhone] = useState(user?.patientProfile?.phone || "")
+  const [weight, setWeight] = useState(user?.patientProfile?.weight?.toString() || "")
 
   // Parse existing address into components
   const parseAddress = (addr: string) => {
@@ -162,6 +163,7 @@ export function PatientSettings() {
         phone,
         address: homeAddress,
         shippingAddress,
+        weight: weight ? parseFloat(weight) : null,
       })
       toast.success("Profile updated successfully")
       // Refresh user data
@@ -263,18 +265,38 @@ export function PatientSettings() {
 
             {/* Editable fields */}
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-mono uppercase text-foreground flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5" />
-                  Phone Number
-                </Label>
-                <Input
-                  type="tel"
-                  placeholder="(555) 123-4567"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="border-border"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-mono uppercase text-foreground flex items-center gap-2">
+                    <Phone className="w-3.5 h-3.5" />
+                    Phone Number
+                  </Label>
+                  <Input
+                    type="tel"
+                    placeholder="(555) 123-4567"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="border-border"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-mono uppercase text-foreground flex items-center gap-2">
+                    <Scale className="w-3.5 h-3.5" />
+                    Weight (lbs)
+                  </Label>
+                  <Input
+                    type="number"
+                    placeholder="150"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    className="border-border"
+                  />
+                  {user?.patientProfile?.weightUpdatedAt && (
+                    <p className="text-[10px] text-muted-foreground">
+                      Last updated: {new Date(user.patientProfile.weightUpdatedAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-4">

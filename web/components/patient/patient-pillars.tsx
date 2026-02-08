@@ -2,6 +2,7 @@
 
 import { Moon, Utensils, Dumbbell, Brain, Pill, TrendingUp, TrendingDown, Minus, Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useAuth } from "@/contexts/auth-context"
 
 const pillarsData = {
   sleep: {
@@ -125,6 +126,8 @@ function getTrendIcon(trend: string) {
 }
 
 export function PatientPillars() {
+  const { user } = useAuth()
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -137,6 +140,26 @@ export function PatientPillars() {
       <div className="space-y-6">
         {Object.entries(pillarsData).map(([key, pillar]) => {
           const Icon = pillar.icon
+
+          let displayMetrics = pillar.metrics
+          let tips = pillar.tips
+          if (key === 'nutrition' && user?.patientProfile?.weight) {
+            const weight = user.patientProfile.weight
+            const minProtein = Math.round(weight * 0.8)
+            const maxProtein = Math.round(weight * 1.2)
+
+            displayMetrics = pillar.metrics.map(m =>
+              m.label === 'Protein'
+                ? { ...m, value: `${minProtein}-${maxProtein}g/day`, subtext: `Goal for ${weight} lbs` }
+                : m
+            )
+
+            tips = pillar.tips.map(tip =>
+              tip.includes('protein intake to 1g per lb')
+                ? `Maintain protein intake of approximately ${weight}g per day (1g/lb)`
+                : tip
+            )
+          }
 
           return (
             <div key={key} className="border border-border">
@@ -203,11 +226,16 @@ export function PatientPillars() {
                   {/* Metrics */}
                   <div>
                     <p className="text-xs font-mono uppercase text-muted-foreground mb-3">Key Metrics</p>
-                    <div className="space-y-2">
-                      {pillar.metrics.map((metric) => (
-                        <div key={metric.label} className="flex items-center justify-between">
+                    <div className="space-y-3">
+                      {displayMetrics.map((metric) => (
+                        <div key={metric.label} className="flex items-start justify-between">
                           <span className="text-sm text-muted-foreground">{metric.label}</span>
-                          <span className="text-sm font-medium text-foreground">{metric.value}</span>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-foreground">{metric.value}</p>
+                            {(metric as any).subtext && (
+                              <p className="text-[10px] text-muted-foreground">{(metric as any).subtext}</p>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -219,7 +247,7 @@ export function PatientPillars() {
                       <Info className="w-3 h-3" /> Recommendations
                     </p>
                     <ul className="space-y-2">
-                      {pillar.tips.map((tip, index) => (
+                      {tips.map((tip, index) => (
                         <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
                           <span className="text-primary">•</span>
                           {tip}
