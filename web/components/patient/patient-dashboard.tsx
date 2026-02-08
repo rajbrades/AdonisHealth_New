@@ -203,7 +203,7 @@ export function PatientDashboard() {
             <Pill className="w-5 h-5 text-primary" />
             <h2 className="font-bold text-foreground">Current Supplements</h2>
           </div>
-          <Link href="/patient/supplements" className="text-sm text-primary hover:underline">
+          <Link href="/patient/medications" className="text-sm text-primary hover:underline">
             View All
           </Link>
         </div>

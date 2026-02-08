@@ -49,3 +49,16 @@ The following table provides a comprehensive overview of each authentication fea
 ## 4. Conclusion
 
 We have implemented a robust set of foundational HIPAA-compliant authentication features. While some advanced features are still planned, the current system provides a secure and compliant authentication experience. This document will be updated as new features are implemented.
+
+---
+
+## 5. Test Credentials (Local Development)
+
+The following accounts are created by the database seed script (`npx prisma db seed`) for local testing purposes.
+
+| Role | Email | Password |
+|---|---|---|
+| **Patient** | `patient@example.com` | `Adonis@2026!Secure` |
+| **Provider** | `dr.stone@adonis.health` | `Adonis@2026!Secure` |
+
+**Note**: These passwords comply with the new security policy (12+ chars, uppercase, lowercase, number, special char).

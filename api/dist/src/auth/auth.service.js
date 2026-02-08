@@ -56,6 +56,7 @@ let AuthService = class AuthService {
     BCRYPT_ROUNDS = 10;
     MAX_LOGIN_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS || '5', 10);
     LOCKOUT_DURATION_MINUTES = parseInt(process.env.LOCKOUT_DURATION_MINUTES || '30', 10);
+    PASSWORD_EXPIRATION_DAYS = parseInt(process.env.PASSWORD_EXPIRATION_DAYS || '90', 10);
     constructor(prisma, jwtService, auditService) {
         this.prisma = prisma;
         this.jwtService = jwtService;
@@ -74,6 +75,7 @@ let AuthService = class AuthService {
                 email,
                 password: hashedPassword,
                 role: 'PATIENT',
+                passwordChangedAt: new Date(),
                 patientProfile: {
                     create: {
                         firstName,
@@ -117,6 +119,11 @@ let AuthService = class AuthService {
             await this.logFailedLoginAttempt(email, ipAddress);
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
+        const passwordExpired = this.checkPasswordExpiration(user.passwordChangedAt);
+        if (passwordExpired) {
+            await this.auditService.log(user.id, audit_service_1.AuditAction.LOGIN, `user:${user.id}`, ipAddress, { email: user.email, passwordExpired: true });
+            throw new common_1.UnauthorizedException('Your password has expired. Please change your password to continue.');
+        }
         const payload = { email: user.email, sub: user.id, role: user.role };
         const access_token = this.jwtService.sign(payload);
         await this.auditService.log(user.id, audit_service_1.AuditAction.LOGIN, `user:${user.id}`, ipAddress, { email: user.email, role: user.role });
@@ -149,10 +156,21 @@ let AuthService = class AuthService {
         const hashedPassword = await bcrypt.hash(newPassword, this.BCRYPT_ROUNDS);
         await this.prisma.user.update({
             where: { id: userId },
-            data: { password: hashedPassword },
+            data: {
+                password: hashedPassword,
+                passwordChangedAt: new Date(),
+            },
         });
         await this.auditService.log(userId, audit_service_1.AuditAction.PASSWORD_CHANGE, `user:${userId}`, ipAddress);
         return { message: 'Password changed successfully' };
+    }
+    checkPasswordExpiration(passwordChangedAt) {
+        if (!passwordChangedAt) {
+            return true;
+        }
+        const expirationDate = new Date(passwordChangedAt);
+        expirationDate.setDate(expirationDate.getDate() + this.PASSWORD_EXPIRATION_DAYS);
+        return new Date() > expirationDate;
     }
     async checkAccountLockout(email) {
         const lockoutStart = new Date(Date.now() - this.LOCKOUT_DURATION_MINUTES * 60 * 1000);
@@ -185,6 +203,7 @@ let AuthService = class AuthService {
                         gender: true,
                         phone: true,
                         address: true,
+                        shippingAddress: true,
                     },
                 },
                 providerProfile: {
@@ -208,6 +227,28 @@ let AuthService = class AuthService {
             throw new common_1.UnauthorizedException('User not found');
         }
         return user;
+    }
+    async updateProfile(userId, updateData, ipAddress) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { patientProfile: true },
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found');
+        }
+        if (!user.patientProfile) {
+            throw new common_1.BadRequestException('Patient profile not found');
+        }
+        const updatedProfile = await this.prisma.patientProfile.update({
+            where: { id: user.patientProfile.id },
+            data: {
+                ...(updateData.phone !== undefined && { phone: updateData.phone }),
+                ...(updateData.address !== undefined && { address: updateData.address }),
+                ...(updateData.shippingAddress !== undefined && { shippingAddress: updateData.shippingAddress }),
+            },
+        });
+        await this.auditService.log(userId, audit_service_1.AuditAction.EDIT_PATIENT_PROFILE, `profile:${user.patientProfile.id}`, ipAddress, { updatedFields: Object.keys(updateData) });
+        return this.getUserProfile(userId);
     }
 };
 exports.AuthService = AuthService;

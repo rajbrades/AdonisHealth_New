@@ -21,7 +21,7 @@ const navigation = [
   { name: "Dashboard", href: "/patient", icon: LayoutDashboard },
   { name: "Check-in", href: "/patient/checkin", icon: ClipboardCheck },
   { name: "Health Pillars", href: "/patient/pillars", icon: Moon },
-  { name: "Medications", href: "/patient/medications", icon: Pill },
+  { name: "Rx and Supps", href: "/patient/medications", icon: Pill },
   { name: "Lab Results", href: "/patient/labs", icon: FileText },
   { name: "Messages", href: "/patient/messages", icon: MessageSquare },
   { name: "Appointments", href: "/patient/appointments", icon: Calendar },

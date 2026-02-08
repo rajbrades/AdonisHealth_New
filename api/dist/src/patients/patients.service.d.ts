@@ -9,8 +9,8 @@ export declare class PatientsService {
             updatedAt: Date;
             patientId: string;
             status: string;
-            conciergeId: string | null;
             providerId: string | null;
+            conciergeId: string | null;
             chiefComplaint: string | null;
             history: string | null;
             subjective: string | null;
@@ -27,8 +27,8 @@ export declare class PatientsService {
             id: string;
             patientId: string;
             status: string;
-            testDate: Date;
             providerId: string | null;
+            testDate: Date;
             uploadedAt: Date;
         }[];
         orders: {
@@ -38,6 +38,7 @@ export declare class PatientsService {
             patientId: string;
             status: string;
             totalAmount: number;
+            quoteId: string | null;
             fulfillmentId: string | null;
             trackingUrl: string | null;
         }[];
@@ -50,6 +51,7 @@ export declare class PatientsService {
         gender: string;
         phone: string | null;
         address: string | null;
+        shippingAddress: string | null;
     })[]>;
     findOne(id: string): Promise<({
         clinicalNotes: {
@@ -58,8 +60,8 @@ export declare class PatientsService {
             updatedAt: Date;
             patientId: string;
             status: string;
-            conciergeId: string | null;
             providerId: string | null;
+            conciergeId: string | null;
             chiefComplaint: string | null;
             history: string | null;
             subjective: string | null;
@@ -77,8 +79,8 @@ export declare class PatientsService {
             id: string;
             patientId: string;
             status: string;
-            testDate: Date;
             providerId: string | null;
+            testDate: Date;
             uploadedAt: Date;
         }[];
         orders: {
@@ -88,6 +90,7 @@ export declare class PatientsService {
             patientId: string;
             status: string;
             totalAmount: number;
+            quoteId: string | null;
             fulfillmentId: string | null;
             trackingUrl: string | null;
         }[];
@@ -131,5 +134,6 @@ export declare class PatientsService {
         gender: string;
         phone: string | null;
         address: string | null;
+        shippingAddress: string | null;
     }) | null>;
 }

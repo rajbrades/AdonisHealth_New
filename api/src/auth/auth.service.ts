@@ -18,7 +18,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private auditService: AuditService,
-  ) {}
+  ) { }
 
   /**
    * Register a new patient user with HIPAA-compliant audit logging
@@ -53,15 +53,15 @@ export class AuthService {
             gender,
             goals: {
               create: [
-                ...(registerDto.goals || []).map(g => ({ 
-                  type: 'SHORT_TERM', 
-                  description: g, 
-                  status: 'ACTIVE' 
+                ...(registerDto.goals || []).map(g => ({
+                  type: 'SHORT_TERM',
+                  description: g,
+                  status: 'ACTIVE'
                 })),
-                ...(registerDto.symptoms || []).map(s => ({ 
-                  type: 'SYMPTOM', 
-                  description: s, 
-                  status: 'ACTIVE' 
+                ...(registerDto.symptoms || []).map(s => ({
+                  type: 'SYMPTOM',
+                  description: s,
+                  status: 'ACTIVE'
                 }))
               ]
             }
@@ -259,7 +259,7 @@ export class AuthService {
     // Create a temporary audit log entry without userId (since login failed)
     // We'll use a system user ID for failed attempts
     const systemUserId = 'system';
-    
+
     await this.auditService.log(
       systemUserId,
       AuditAction.LOGIN_FAILED,
@@ -289,6 +289,7 @@ export class AuthService {
             gender: true,
             phone: true,
             address: true,
+            shippingAddress: true,
           },
         },
         providerProfile: {
@@ -314,5 +315,48 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  /**
+   * Update patient profile information
+   */
+  async updateProfile(
+    userId: string,
+    updateData: { phone?: string; address?: string; shippingAddress?: string },
+    ipAddress?: string,
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { patientProfile: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (!user.patientProfile) {
+      throw new BadRequestException('Patient profile not found');
+    }
+
+    // Update patient profile
+    const updatedProfile = await this.prisma.patientProfile.update({
+      where: { id: user.patientProfile.id },
+      data: {
+        ...(updateData.phone !== undefined && { phone: updateData.phone }),
+        ...(updateData.address !== undefined && { address: updateData.address }),
+        ...(updateData.shippingAddress !== undefined && { shippingAddress: updateData.shippingAddress }),
+      },
+    });
+
+    // Audit log: Profile update
+    await this.auditService.log(
+      userId,
+      AuditAction.EDIT_PATIENT_PROFILE,
+      `profile:${user.patientProfile.id}`,
+      ipAddress,
+      { updatedFields: Object.keys(updateData) },
+    );
+
+    return this.getUserProfile(userId);
   }
 }

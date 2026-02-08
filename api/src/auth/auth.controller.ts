@@ -1,9 +1,10 @@
-import { 
-  Controller, 
-  Post, 
-  Get, 
-  Body, 
-  Req, 
+import {
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Body,
+  Req,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -13,11 +14,12 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   /**
    * Register a new patient user
@@ -66,6 +68,22 @@ export class AuthController {
   }
 
   /**
+   * Update user profile (requires authentication)
+   * PATCH /auth/profile
+   */
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async updateProfile(
+    @Body() updateProfileDto: UpdateProfileDto,
+    @Req() req: any,
+  ) {
+    const userId = req.user.userId;
+    const ipAddress = this.getClientIp(req);
+    return this.authService.updateProfile(userId, updateProfileDto, ipAddress);
+  }
+
+  /**
    * Change password (requires authentication)
    * POST /auth/change-password
    */
@@ -93,8 +111,8 @@ export class AuthController {
   private getClientIp(req: Request): string {
     const forwarded = req.headers['x-forwarded-for'];
     if (forwarded) {
-      return typeof forwarded === 'string' 
-        ? forwarded.split(',')[0].trim() 
+      return typeof forwarded === 'string'
+        ? forwarded.split(',')[0].trim()
         : forwarded[0];
     }
     return req.ip || req.socket.remoteAddress || 'unknown';

@@ -8,12 +8,17 @@ async function main() {
     console.log('Seeding database...');
 
     // 1. Create Users (Patient, Provider)
-    const patientPassword = await bcrypt.hash('password123', 10);
-    const providerPassword = await bcrypt.hash('password123', 10);
+    // Passwords must be 12+ chars, include uppercase, lowercase, number, and special char
+    const strongPassword = await bcrypt.hash('Adonis@2026!Secure', 10);
+    const patientPassword = strongPassword;
+    const providerPassword = strongPassword;
 
     const patientUser = await prisma.user.upsert({
         where: { email: 'patient@example.com' },
-        update: {},
+        update: {
+            password: patientPassword,
+            passwordChangedAt: new Date(),
+        },
         create: {
             email: 'patient@example.com',
             password: patientPassword,
@@ -24,7 +29,10 @@ async function main() {
 
     const providerUser = await prisma.user.upsert({
         where: { email: 'dr.stone@adonis.health' },
-        update: {},
+        update: {
+            password: providerPassword,
+            passwordChangedAt: new Date(),
+        },
         create: {
             email: 'dr.stone@adonis.health',
             password: providerPassword,
@@ -48,7 +56,7 @@ async function main() {
         },
     });
 
-    await prisma.providerProfile.upsert({
+    const providerProfile = await prisma.providerProfile.upsert({
         where: { userId: providerUser.id },
         update: {},
         create: {
@@ -148,6 +156,120 @@ async function main() {
             }),
         },
     });
+
+    // 7. Create Appointments for ALL users (to ensure developer sees them)
+    const allPatients = await prisma.patientProfile.findMany();
+
+    const today = new Date();
+    const twoDaysFromNow = new Date(today); twoDaysFromNow.setDate(today.getDate() + 2); twoDaysFromNow.setHours(14, 0, 0, 0);
+    const fiveDaysFromNow = new Date(today); fiveDaysFromNow.setDate(today.getDate() + 5); fiveDaysFromNow.setHours(10, 30, 0, 0);
+    const tenDaysFromNow = new Date(today); tenDaysFromNow.setDate(today.getDate() + 10); tenDaysFromNow.setHours(9, 0, 0, 0);
+
+    const threeDaysAgo = new Date(today); threeDaysAgo.setDate(today.getDate() - 3); threeDaysAgo.setHours(11, 0, 0, 0);
+    const twoWeeksAgo = new Date(today); twoWeeksAgo.setDate(today.getDate() - 14); twoWeeksAgo.setHours(15, 0, 0, 0);
+    const oneMonthAgo = new Date(today); oneMonthAgo.setMonth(today.getMonth() - 1); oneMonthAgo.setHours(13, 0, 0, 0);
+
+    for (const patient of allPatients) {
+        // Check only for existing appointments to avoid duplication
+        const existingCount = await prisma.appointment.count({
+            where: { patientId: patient.id }
+        });
+
+        if (existingCount > 0) {
+            console.log(`Skipping appointments for ${patient.firstName} ${patient.lastName} (already has data)`);
+            continue;
+        }
+
+        console.log(`Seeding appointments for ${patient.firstName} ${patient.lastName}...`);
+
+        // 1. Scheduled: Upcoming Telehealth
+        await prisma.appointment.create({
+            data: {
+                patientId: patient.id,
+                providerId: providerProfile.id,
+                title: 'Protocol Review',
+                type: 'TELEHEALTH',
+                status: 'SCHEDULED',
+                date: twoDaysFromNow,
+                duration: 30,
+                location: 'Zoom Meeting',
+                notes: 'Please have your latest blood pressure readings ready. Code: ADONIS-8821',
+            }
+        });
+
+        // 2. Scheduled: Lab Draw (Future)
+        await prisma.appointment.create({
+            data: {
+                patientId: patient.id,
+                title: 'Quarterly Lipid Panel',
+                type: 'LAB_DRAW',
+                status: 'SCHEDULED',
+                date: tenDaysFromNow,
+                duration: 15,
+                location: 'Quest Diagnostics',
+                notes: 'Fasting 12 hours required.',
+            }
+        });
+
+        // 3. Pending: User Requested
+        await prisma.appointment.create({
+            data: {
+                patientId: patient.id,
+                providerId: providerProfile.id,
+                title: 'Discuss Dosage Change',
+                type: 'TELEHEALTH',
+                status: 'PENDING',
+                date: fiveDaysFromNow,
+                duration: 30,
+                notes: 'Patient requested to increase dosage due to fatigue.',
+            }
+        });
+
+        // 4. Completed: Past Consultation
+        await prisma.appointment.create({
+            data: {
+                patientId: patient.id,
+                providerId: providerProfile.id,
+                title: 'Initial Health Assessment',
+                type: 'TELEHEALTH',
+                status: 'COMPLETED',
+                date: oneMonthAgo,
+                duration: 60,
+                location: 'Zoom Meeting',
+                notes: 'Patient onboarding complete. Prescribed initial protocol.',
+            }
+        });
+
+        // 5. Completed: Follow-up
+        await prisma.appointment.create({
+            data: {
+                patientId: patient.id,
+                providerId: providerProfile.id,
+                title: '2-Week Follow-up',
+                type: 'TELEHEALTH',
+                status: 'COMPLETED',
+                date: twoWeeksAgo,
+                duration: 30,
+                notes: 'Patient is tolerating medication well.',
+            }
+        });
+
+        // 6. Cancelled: Recent
+        await prisma.appointment.create({
+            data: {
+                patientId: patient.id,
+                providerId: providerProfile.id,
+                title: 'Quick Check-in',
+                type: 'TELEHEALTH',
+                status: 'CANCELLED',
+                date: threeDaysAgo,
+                duration: 15,
+                cancelledAt: new Date(threeDaysAgo.getTime() - 86400000),
+                cancellationReason: 'Work conflict',
+                notes: 'Patient rescheduled to next week.',
+            }
+        });
+    }
 
     console.log('Seeding finished.');
 }

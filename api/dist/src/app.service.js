@@ -10,7 +10,21 @@ exports.AppService = void 0;
 const common_1 = require("@nestjs/common");
 let AppService = class AppService {
     getHello() {
-        return 'Hello World!';
+        return {
+            name: 'Adonis Health API',
+            version: '1.0.0',
+            description: 'Premium Men\'s Health & Executive Wellness Platform',
+            status: 'running',
+            endpoints: {
+                auth: '/auth',
+                patients: '/patients',
+                quotes: '/quotes',
+                labOrders: '/lab-orders',
+                labs: '/labs',
+                concierge: '/concierge',
+            },
+            documentation: 'See /docs for API documentation',
+        };
     }
 };
 exports.AppService = AppService;

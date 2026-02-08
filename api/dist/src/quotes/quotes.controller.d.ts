@@ -18,6 +18,7 @@ export declare class QuotesController {
             gender: string;
             phone: string | null;
             address: string | null;
+            shippingAddress: string | null;
         };
         items: ({
             product: {
@@ -61,6 +62,7 @@ export declare class QuotesController {
             gender: string;
             phone: string | null;
             address: string | null;
+            shippingAddress: string | null;
         };
         items: {
             id: string;
@@ -97,6 +99,7 @@ export declare class QuotesController {
             gender: string;
             phone: string | null;
             address: string | null;
+            shippingAddress: string | null;
         };
         items: ({
             product: {

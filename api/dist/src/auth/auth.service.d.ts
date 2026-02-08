@@ -10,6 +10,7 @@ export declare class AuthService {
     private readonly BCRYPT_ROUNDS;
     private readonly MAX_LOGIN_ATTEMPTS;
     private readonly LOCKOUT_DURATION_MINUTES;
+    private readonly PASSWORD_EXPIRATION_DAYS;
     constructor(prisma: PrismaService, jwtService: JwtService, auditService: AuditService);
     register(registerDto: RegisterDto, ipAddress?: string): Promise<{
         access_token: string;
@@ -34,6 +35,7 @@ export declare class AuthService {
     changePassword(userId: string, currentPassword: string, newPassword: string, ipAddress?: string): Promise<{
         message: string;
     }>;
+    private checkPasswordExpiration;
     private checkAccountLockout;
     private logFailedLoginAttempt;
     getUserProfile(userId: string): Promise<{
@@ -49,6 +51,38 @@ export declare class AuthService {
             gender: string;
             phone: string | null;
             address: string | null;
+            shippingAddress: string | null;
+        } | null;
+        providerProfile: {
+            id: string;
+            firstName: string;
+            lastName: string;
+            specialty: string | null;
+        } | null;
+        conciergeProfile: {
+            id: string;
+            firstName: string;
+            lastName: string;
+        } | null;
+    }>;
+    updateProfile(userId: string, updateData: {
+        phone?: string;
+        address?: string;
+        shippingAddress?: string;
+    }, ipAddress?: string): Promise<{
+        id: string;
+        email: string;
+        role: string;
+        createdAt: Date;
+        patientProfile: {
+            id: string;
+            firstName: string;
+            lastName: string;
+            dob: Date;
+            gender: string;
+            phone: string | null;
+            address: string | null;
+            shippingAddress: string | null;
         } | null;
         providerProfile: {
             id: string;

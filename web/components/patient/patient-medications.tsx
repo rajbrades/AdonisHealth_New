@@ -1,12 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { Syringe, AlertCircle, Clock, Package, ChevronDown, ChevronUp, CheckCircle2, MessageSquare, Send } from "lucide-react"
+import { Syringe, AlertCircle, Clock, Package, Pill, ChevronDown, ChevronUp, CheckCircle2, MessageSquare, Send, Edit, History, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { AddRegimenDialog } from "./add-regimen-dialog"
+import { EditRegimenDialog } from "./edit-regimen-dialog"
+import { RegimenHistoryDialog } from "./regimen-history-dialog"
+import { DiscontinueRegimenDialog } from "./discontinue-regimen-dialog"
+import { apiClient } from "@/lib/api-client"
+import { toast } from "sonner"
 
 interface Medication {
   name: string
@@ -15,6 +21,7 @@ interface Medication {
   frequency: string
   purpose: string
   status: "active" | "discontinued"
+  type: "RX" | "SUPPLEMENT"
   startDate: string
   endDate?: string
   refillsRemaining?: number
@@ -32,6 +39,7 @@ const mockMedications: Medication[] = [
     frequency: "Weekly",
     purpose: "Testosterone replacement therapy for hypogonadism",
     status: "active",
+    type: "RX",
     startDate: "2025-10-15",
     refillsRemaining: 3,
     lastTaken: "2 days ago",
@@ -51,6 +59,7 @@ const mockMedications: Medication[] = [
     frequency: "2x/week",
     purpose: "Prevent testicular atrophy and maintain fertility",
     status: "active",
+    type: "RX",
     startDate: "2025-10-15",
     refillsRemaining: 5,
     lastTaken: "Yesterday",
@@ -68,6 +77,7 @@ const mockMedications: Medication[] = [
     frequency: "2x/week",
     purpose: "Estrogen management",
     status: "active",
+    type: "RX",
     startDate: "2025-11-01",
     refillsRemaining: 2,
     lastTaken: "3 hours ago",
@@ -79,12 +89,77 @@ const mockMedications: Medication[] = [
     ]
   },
   {
+    name: "Vitamin D3",
+    dose: "5000 IU",
+    route: "PO",
+    frequency: "Daily",
+    purpose: "Bone health and immune support",
+    status: "active",
+    type: "SUPPLEMENT",
+    startDate: "2025-09-01",
+    lastTaken: "This morning",
+    adherenceRate: 88,
+    instructions: [
+      "Take with a meal containing fat for better absorption",
+      "Best taken in the morning"
+    ]
+  },
+  {
+    name: "Omega-3 Fish Oil",
+    dose: "2000mg",
+    route: "PO",
+    frequency: "Daily",
+    purpose: "Cardiovascular health and inflammation reduction",
+    status: "active",
+    type: "SUPPLEMENT",
+    startDate: "2025-09-01",
+    lastTaken: "This morning",
+    adherenceRate: 90,
+    instructions: [
+      "Take with food to reduce fishy aftertaste",
+      "Store in cool, dry place"
+    ]
+  },
+  {
+    name: "Magnesium Glycinate",
+    dose: "400mg",
+    route: "PO",
+    frequency: "Nightly",
+    purpose: "Sleep quality and muscle recovery",
+    status: "active",
+    type: "SUPPLEMENT",
+    startDate: "2025-10-01",
+    lastTaken: "Last night",
+    adherenceRate: 85,
+    instructions: [
+      "Take 30-60 minutes before bed",
+      "May cause drowsiness"
+    ]
+  },
+  {
+    name: "Zinc Picolinate",
+    dose: "30mg",
+    route: "PO",
+    frequency: "Daily",
+    purpose: "Immune function and testosterone support",
+    status: "active",
+    type: "SUPPLEMENT",
+    startDate: "2025-10-15",
+    lastTaken: "This morning",
+    adherenceRate: 92,
+    instructions: [
+      "Take with food to avoid nausea",
+      "Do not take with calcium supplements"
+    ]
+  },
+  {
     name: "Clomiphene Citrate",
     dose: "25mg",
     route: "PO",
     frequency: "Daily",
     purpose: "Testosterone boost",
     status: "discontinued",
+    type: "RX",
     startDate: "2025-06-01",
     endDate: "2025-10-10",
   }
@@ -97,6 +172,13 @@ export function PatientMedications() {
   const [selectedMedication, setSelectedMedication] = useState<string>("")
   const [patientNote, setPatientNote] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Dialog states
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false)
+  const [selectedRegimen, setSelectedRegimen] = useState<Medication | null>(null)
+  const [regimenHistory, setRegimenHistory] = useState<any[]>([])
 
   const toggleExpanded = (medName: string) => {
     const newExpanded = new Set(expandedMeds)
@@ -116,17 +198,17 @@ export function PatientMedications() {
 
   const submitNote = async () => {
     if (!patientNote.trim()) return
-    
+
     setIsSubmitting(true)
     console.log("[v0] Submitting medication note:", {
       medication: selectedMedication,
       note: patientNote,
       timestamp: new Date().toISOString()
     })
-    
+
     // TODO: API call to save note and notify concierge/provider
     // await fetch('/api/medications/notes', { method: 'POST', body: JSON.stringify({ ... }) })
-    
+
     setTimeout(() => {
       setIsSubmitting(false)
       setNoteModalOpen(false)
@@ -135,8 +217,76 @@ export function PatientMedications() {
     }, 1000)
   }
 
-  const activeMedications = mockMedications.filter(m => m.status === "active")
-  const discontinuedMedications = mockMedications.filter(m => m.status === "discontinued")
+  // Dialog handlers
+  const handleAddRegimen = async (data: any) => {
+    try {
+      await apiClient.createRegimen(data)
+      toast.success(`${data.type === 'RX' ? 'Medication' : 'Supplement'} added successfully`)
+      // TODO: Refresh regimen list from API
+    } catch (error) {
+      console.error("Failed to add regimen:", error)
+      toast.error("Failed to add item. Please try again.")
+      throw error
+    }
+  }
+
+  const handleEditRegimen = async (id: string, data: any) => {
+    try {
+      await apiClient.updateRegimen(id, data)
+      toast.success("Changes saved successfully")
+      // TODO: Refresh regimen list from API
+    } catch (error) {
+      console.error("Failed to update regimen:", error)
+      toast.error("Failed to save changes. Please try again.")
+      throw error
+    }
+  }
+
+  const openEditDialog = (med: Medication) => {
+    setSelectedRegimen(med)
+    setEditDialogOpen(true)
+  }
+
+  const openHistoryDialog = async (med: Medication) => {
+    setSelectedRegimen(med)
+    setHistoryDialogOpen(true)
+
+    // TODO: Fetch real history from API
+    // For now, show mock data
+    setRegimenHistory([
+      {
+        id: "1",
+        changeType: "CREATED",
+        changedBy: "PATIENT",
+        reason: "Added to regimen",
+        createdAt: med.startDate,
+      }
+    ])
+  }
+
+  const [discontinueDialogOpen, setDiscontinueDialogOpen] = useState(false)
+
+  const handleDiscontinueRegimen = async (id: string, data: any) => {
+    try {
+      await apiClient.discontinueRegimen(id, data)
+      toast.success("Item discontinued successfully")
+      // TODO: Refresh regimen list from API
+    } catch (error) {
+      console.error("Failed to discontinue regimen:", error)
+      toast.error("Failed to discontinue item. Please try again.")
+      throw error
+    }
+  }
+
+  const openDiscontinueDialog = (med: Medication) => {
+    setSelectedRegimen(med)
+    setDiscontinueDialogOpen(true)
+  }
+
+  const activeMedications = mockMedications.filter(m => m.status === "active" && m.type === "RX")
+  const activeSupplements = mockMedications.filter(m => m.status === "active" && m.type === "SUPPLEMENT")
+  const discontinuedMedications = mockMedications.filter(m => m.status === "discontinued" && m.type === "RX")
+  const discontinuedSupplements = mockMedications.filter(m => m.status === "discontinued" && m.type === "SUPPLEMENT")
 
   const renderMedicationCard = (med: Medication) => {
     const isExpanded = expandedMeds.has(med.name)
@@ -153,6 +303,11 @@ export function PatientMedications() {
                 {med.status === "active" && (
                   <span className="text-xs font-mono uppercase px-2 py-0.5 bg-green-500/10 text-green-500">
                     ACTIVE
+                  </span>
+                )}
+                {med.type === "SUPPLEMENT" && (
+                  <span className="text-xs font-mono uppercase px-2 py-0.5 bg-blue-500/10 text-blue-500">
+                    SUPPLEMENT
                   </span>
                 )}
                 {needsRefill && (
@@ -199,8 +354,8 @@ export function PatientMedications() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-2 bg-muted">
-                    <div 
-                      className="h-full bg-gradient-to-r from-[#F4D683] to-[#D4A854]" 
+                    <div
+                      className="h-full bg-gradient-to-r from-[#F4D683] to-[#D4A854]"
                       style={{ width: `${med.adherenceRate}%` }}
                     />
                   </div>
@@ -282,16 +437,47 @@ export function PatientMedications() {
 
               {/* Actions */}
               {med.status === "active" && (
-                <div className="pt-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="w-full bg-transparent"
-                    onClick={() => openNoteModal(med.name)}
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Ask Question / Report Issue
-                  </Button>
+                <div className="pt-2 space-y-2">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(med)}
+                      className="flex-1"
+                    >
+                      <Edit className="w-3.5 h-3.5 mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openHistoryDialog(med)}
+                      className="flex-1"
+                    >
+                      <History className="w-3.5 h-3.5 mr-2" />
+                      View History
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openNoteModal(med.name)}
+                      className="flex-1"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 mr-2" />
+                      Add Note
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openDiscontinueDialog(med)}
+                      className="flex-1 border-red-500/50 text-red-500 hover:bg-red-500/10"
+                    >
+                      <AlertCircle className="w-3.5 h-3.5 mr-2" />
+                      Discontinue
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -305,44 +491,102 @@ export function PatientMedications() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 max-w-5xl space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-primary/10 flex items-center justify-center">
-            <Syringe className="w-6 h-6 text-primary" />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary/10 rounded-lg">
+              <Syringe className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Medications & Supplements</h1>
+              <p className="text-sm text-muted-foreground">
+                {activeMedications.length} active medication{activeMedications.length !== 1 ? 's' : ''}, {activeSupplements.length} active supplement{activeSupplements.length !== 1 ? 's' : ''}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Medications</h1>
-            <p className="text-sm text-muted-foreground">
-              {activeMedications.length} active medication{activeMedications.length !== 1 ? 's' : ''}
-            </p>
-          </div>
+          <Button
+            onClick={() => setAddDialogOpen(true)}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add New
+          </Button>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="border-b border-border w-full justify-start bg-transparent p-0">
-            <TabsTrigger 
-              value="current" 
+            <TabsTrigger
+              value="current"
               className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
             >
-              Current ({activeMedications.length})
+              Current ({activeMedications.length + activeSupplements.length})
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="historical"
               className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
             >
-              Historical ({discontinuedMedications.length})
+              Historical ({discontinuedMedications.length + discontinuedSupplements.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="current" className="space-y-4 mt-6">
-            {activeMedications.map(med => renderMedicationCard(med))}
+          <TabsContent value="current" className="space-y-6 mt-6">
+            {/* Medications Section */}
+            {activeMedications.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Syringe className="w-5 h-5 text-primary" />
+                  Medications ({activeMedications.length})
+                </h2>
+                <div className="space-y-4">
+                  {activeMedications.map(med => renderMedicationCard(med))}
+                </div>
+              </div>
+            )}
+
+            {/* Supplements Section */}
+            {activeSupplements.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Pill className="w-5 h-5 text-blue-500" />
+                  Supplements ({activeSupplements.length})
+                </h2>
+                <div className="space-y-4">
+                  {activeSupplements.map(med => renderMedicationCard(med))}
+                </div>
+              </div>
+            )}
           </TabsContent>
 
-          <TabsContent value="historical" className="space-y-4 mt-6">
-            {discontinuedMedications.map(med => renderMedicationCard(med))}
-            {discontinuedMedications.length === 0 && (
+          <TabsContent value="historical" className="space-y-6 mt-6">
+            {/* Historical Medications */}
+            {discontinuedMedications.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Syringe className="w-5 h-5 text-primary" />
+                  Medications ({discontinuedMedications.length})
+                </h2>
+                <div className="space-y-4">
+                  {discontinuedMedications.map(med => renderMedicationCard(med))}
+                </div>
+              </div>
+            )}
+
+            {/* Historical Supplements */}
+            {discontinuedSupplements.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Pill className="w-5 h-5 text-blue-500" />
+                  Supplements ({discontinuedSupplements.length})
+                </h2>
+                <div className="space-y-4">
+                  {discontinuedSupplements.map(med => renderMedicationCard(med))}
+                </div>
+              </div>
+            )}
+
+            {discontinuedMedications.length === 0 && discontinuedSupplements.length === 0 && (
               <div className="border border-border p-8 text-center">
-                <p className="text-muted-foreground">No discontinued medications</p>
+                <p className="text-muted-foreground">No discontinued medications or supplements</p>
               </div>
             )}
           </TabsContent>
@@ -378,15 +622,15 @@ export function PatientMedications() {
               </div>
             </div>
             <div className="flex gap-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setNoteModalOpen(false)}
                 className="flex-1 bg-transparent"
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={submitNote}
                 disabled={!patientNote.trim() || isSubmitting}
                 className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
@@ -397,6 +641,46 @@ export function PatientMedications() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Add Regimen Dialog */}
+        <AddRegimenDialog
+          open={addDialogOpen}
+          onOpenChange={setAddDialogOpen}
+          onAdd={handleAddRegimen}
+        />
+
+        {/* Edit Regimen Dialog */}
+        <EditRegimenDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          regimen={selectedRegimen ? {
+            id: selectedRegimen.name, // TODO: Use real ID from API
+            name: selectedRegimen.name,
+            dosage: selectedRegimen.dose,
+            frequency: selectedRegimen.frequency,
+            notes: selectedRegimen.purpose,
+          } : null}
+          onUpdate={handleEditRegimen}
+        />
+
+        {/* Regimen History Dialog */}
+        <RegimenHistoryDialog
+          open={historyDialogOpen}
+          onOpenChange={setHistoryDialogOpen}
+          regimenName={selectedRegimen?.name || ""}
+          history={regimenHistory}
+        />
+
+        {/* Discontinue Regimen Dialog */}
+        <DiscontinueRegimenDialog
+          open={discontinueDialogOpen}
+          onOpenChange={setDiscontinueDialogOpen}
+          regimen={selectedRegimen ? {
+            id: selectedRegimen.name, // TODO: Use real ID from API
+            name: selectedRegimen.name,
+          } : null}
+          onDiscontinue={handleDiscontinueRegimen}
+        />
       </div>
     </div>
   )

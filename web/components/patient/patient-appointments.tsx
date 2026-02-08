@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { apiClient } from "@/lib/api-client"
 import {
   Calendar,
   Video,
@@ -36,7 +37,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 
 interface Appointment {
   id: string
@@ -47,103 +60,13 @@ interface Appointment {
   time: string
   duration: string
   type: "telehealth" | "in-person" | "lab-draw"
-  status: "scheduled" | "completed" | "cancelled" | "no-show"
+  status: "scheduled" | "completed" | "cancelled" | "no-show" | "pending"
   location?: string
   notes?: string
   prepNotes?: string
   appointmentCode?: string
   joinUrl?: string
 }
-
-const mockAppointments: Appointment[] = [
-  {
-    id: "apt-1",
-    title: "Quarterly Provider Consultation",
-    providerName: "Dr. Miller",
-    providerRole: "Physician",
-    date: "2026-02-20",
-    time: "10:00 AM",
-    duration: "30 min",
-    type: "telehealth",
-    status: "scheduled",
-    notes: "Review February lab results, discuss protocol adjustments",
-    joinUrl: "#",
-  },
-  {
-    id: "apt-2",
-    title: "Lab Draw — Hormone Panel",
-    providerName: "Quest Diagnostics",
-    providerRole: "Lab",
-    date: "2026-02-10",
-    time: "8:00 AM",
-    duration: "15 min",
-    type: "lab-draw",
-    status: "scheduled",
-    location: "Quest Diagnostics — 450 Sutter St, SF",
-    notes: "Enter appointment code on the iPad at check-in",
-    prepNotes: "12-hour fasting required. No food or drinks except water after 8 PM the night before.",
-    appointmentCode: "QD-7842-A",
-  },
-  {
-    id: "apt-3",
-    title: "Concierge Check-in Call",
-    providerName: "Sarah J.",
-    providerRole: "Concierge",
-    date: "2026-02-14",
-    time: "2:00 PM",
-    duration: "15 min",
-    type: "telehealth",
-    status: "scheduled",
-    joinUrl: "#",
-  },
-  {
-    id: "apt-4",
-    title: "Quarterly Provider Consultation",
-    providerName: "Dr. Miller",
-    providerRole: "Physician",
-    date: "2026-01-15",
-    time: "10:00 AM",
-    duration: "30 min",
-    type: "telehealth",
-    status: "completed",
-    notes: "Reviewed January labs, increased Test Cyp to 150mg/wk, adjusted Anastrozole schedule",
-  },
-  {
-    id: "apt-5",
-    title: "Lab Draw — Comprehensive Panel",
-    providerName: "Quest Diagnostics",
-    providerRole: "Lab",
-    date: "2026-01-15",
-    time: "7:30 AM",
-    duration: "15 min",
-    type: "lab-draw",
-    status: "completed",
-    location: "Quest Diagnostics — 450 Sutter St, SF",
-  },
-  {
-    id: "apt-6",
-    title: "Initial Consultation",
-    providerName: "Dr. Miller",
-    providerRole: "Physician",
-    date: "2025-10-10",
-    time: "11:00 AM",
-    duration: "45 min",
-    type: "telehealth",
-    status: "completed",
-    notes: "Initial evaluation, reviewed baseline labs, started TRT protocol",
-  },
-  {
-    id: "apt-7",
-    title: "Concierge Check-in Call",
-    providerName: "Sarah J.",
-    providerRole: "Concierge",
-    date: "2025-12-20",
-    time: "3:00 PM",
-    duration: "15 min",
-    type: "telehealth",
-    status: "cancelled",
-  },
-]
 
 function getTypeIcon(type: string) {
   switch (type) {
@@ -174,6 +97,12 @@ function getStatusBadge(status: string): { className: string; icon: React.ReactN
         className: "bg-blue-500/20 text-blue-400",
         icon: <Clock className="w-3 h-3" />,
         label: "SCHEDULED",
+      }
+    case "pending":
+      return {
+        className: "bg-yellow-500/20 text-yellow-400",
+        icon: <Clock className="w-3 h-3" />,
+        label: "PENDING",
       }
     case "completed":
       return {
@@ -219,6 +148,7 @@ function getRelativeTime(dateStr: string): string {
 }
 
 function convertTo24Hr(timeStr: string): string {
+  if (!timeStr.includes(" ")) return timeStr + ":00"
   const [time, modifier] = timeStr.split(" ")
   let [hours, minutes] = time.split(":").map(Number)
   if (modifier === "PM" && hours !== 12) hours += 12
@@ -229,20 +159,134 @@ function convertTo24Hr(timeStr: string): string {
 export function PatientAppointments() {
   const [activeTab, setActiveTab] = useState("upcoming")
   const [requestDialogOpen, setRequestDialogOpen] = useState(false)
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const upcomingAppointments = mockAppointments
-    .filter(apt => apt.status === "scheduled")
+  // Reschedule / Cancel Dialog States
+  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false)
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+
+  // Request Dialog State
+  const [requestReason, setRequestReason] = useState("review-labs")
+  const [requestNotes, setRequestNotes] = useState("")
+
+  useEffect(() => {
+    fetchAppointments()
+  }, [])
+
+  const fetchAppointments = async () => {
+    try {
+      const data = await apiClient.get<any[]>("/appointments")
+      const transformed = data.map((apt: any) => {
+        const dateObj = new Date(apt.date)
+        return {
+          id: apt.id,
+          title: apt.title,
+          providerName: apt.provider ? `Dr. ${apt.provider.lastName}` : "TBD",
+          providerRole: "Provider", // simplified
+          date: dateObj.toISOString().split('T')[0],
+          time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          duration: `${apt.duration} min`,
+          type: apt.type.toLowerCase().replace('_', '-'),
+          status: apt.status.toLowerCase(),
+          location: apt.location,
+          notes: apt.notes,
+        } as Appointment
+      })
+      setAppointments(transformed)
+    } catch (error) {
+      console.error("Failed to fetch appointments", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Helper to force cleanup of Radix UI styles
+  const forceUnlockScroll = () => {
+    setTimeout(() => {
+      document.body.style.pointerEvents = ""
+      document.body.style.overflow = ""
+    }, 500)
+  }
+
+  const handleCancel = async () => {
+    if (!selectedAppointment) return
+    try {
+      await apiClient.post(`/appointments/${selectedAppointment.id}/cancel`, { reason: "Patient requested via portal" })
+      toast.success("Appointment cancelled successfully")
+      setCancelDialogOpen(false)
+      forceUnlockScroll()
+      // Wait for dialog animation to complete before fetching to avoid scroll lock issues
+      setTimeout(() => {
+        fetchAppointments()
+      }, 500)
+    } catch (error) {
+      toast.error("Failed to cancel appointment")
+    }
+  }
+
+  const handleReschedule = async () => {
+    if (!selectedAppointment) return
+    try {
+      // Send request without date - backend will handle it as PENDING
+      await apiClient.post(`/appointments/${selectedAppointment.id}/reschedule`, {})
+      toast.success("Reschedule request submitted successfully")
+      setRescheduleDialogOpen(false)
+      forceUnlockScroll()
+      // Wait for dialog animation to complete before fetching to avoid scroll lock issues
+      setTimeout(() => {
+        fetchAppointments()
+      }, 500)
+    } catch (error) {
+      toast.error("Failed to submit reschedule request")
+    }
+  }
+
+  const handleRequest = async () => {
+    const reasonTitles: Record<string, string> = {
+      "review-labs": "Lab Results Review",
+      "discuss-protocol": "Protocol/Dosage Discussion",
+      "new-concern": "New Health Concern",
+      "check-in": "General Check-in"
+    }
+
+    try {
+      await apiClient.post("/appointments", {
+        title: reasonTitles[requestReason] || "Telehealth Consultation",
+        type: "TELEHEALTH",
+        date: new Date(),
+        duration: 30, // default
+        status: "PENDING",
+        notes: requestNotes || "Patient requested appointment via portal",
+      })
+      toast.success("Appointment request submitted successfully")
+      setRequestDialogOpen(false)
+      setRequestNotes("")
+      forceUnlockScroll()
+      // Wait for dialog animation to complete before fetching to avoid scroll lock issues
+      setTimeout(() => {
+        fetchAppointments()
+      }, 500)
+    } catch (error) {
+      toast.error("Failed to submit appointment request")
+    }
+  }
+
+  const upcomingAppointments = appointments
+    .filter(apt => apt.status === "scheduled" || apt.status === "pending")
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-  const pastAppointments = mockAppointments
-    .filter(apt => apt.status !== "scheduled")
+  const pastAppointments = appointments
+    .filter(apt => apt.status !== "scheduled" && apt.status !== "pending")
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   const renderAppointmentCard = (apt: Appointment) => {
+    const isPending = apt.status === "pending"
     const dateObj = new Date(apt.date)
-    const monthShort = dateObj.toLocaleDateString("en-US", { month: "short" })
-    const dayNum = dateObj.getDate()
-    const relativeTime = getRelativeTime(apt.date)
+    const monthShort = isPending ? "REQ" : dateObj.toLocaleDateString("en-US", { month: "short" })
+    const dayNum = isPending ? "--" : dateObj.getDate()
+    const relativeTime = isPending ? "Pending Confirmation" : getRelativeTime(apt.date)
     const statusBadge = getStatusBadge(apt.status)
 
     const isJoinable = (() => {
@@ -256,18 +300,16 @@ export function PatientAppointments() {
     return (
       <div key={apt.id} className="border border-border bg-card hover:border-primary/30 transition-colors">
         <div className="p-4 flex flex-col sm:flex-row gap-4">
-          {/* Date Block */}
-          <div className="w-16 h-16 bg-primary/10 flex flex-col items-center justify-center shrink-0">
-            <span className="text-xs font-mono uppercase text-primary">{monthShort}</span>
-            <span className="text-2xl font-bold text-foreground">{dayNum}</span>
+          <div className={`w-16 h-16 ${isPending ? 'bg-muted' : 'bg-primary/10'} flex flex-col items-center justify-center shrink-0 rounded-md`}>
+            <span className={`text-xs font-mono uppercase ${isPending ? 'text-muted-foreground' : 'text-primary'}`}>{monthShort}</span>
+            <span className={`text-2xl font-bold ${isPending ? 'text-muted-foreground' : 'text-foreground'}`}>{dayNum}</span>
           </div>
 
-          {/* Details */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-foreground">{apt.title}</h3>
-                {relativeTime && (
+                {relativeTime && !isPending && (
                   <span className="text-xs font-mono text-muted-foreground hidden sm:inline">
                     {relativeTime}
                   </span>
@@ -281,12 +323,10 @@ export function PatientAppointments() {
               )}
             </div>
 
-            {/* Mobile relative time */}
-            {relativeTime && (
+            {relativeTime && !isPending && (
               <p className="text-xs font-mono text-muted-foreground mb-1 sm:hidden">{relativeTime}</p>
             )}
 
-            {/* Metadata row */}
             <div className="flex items-center gap-x-4 gap-y-1 flex-wrap text-sm text-muted-foreground mb-2">
               <span className="flex items-center gap-1">
                 <User className="w-3.5 h-3.5" />
@@ -294,7 +334,7 @@ export function PatientAppointments() {
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
-                {apt.time} &middot; {apt.duration}
+                {isPending ? "To be scheduled" : `${apt.time} · ${apt.duration} min`}
               </span>
               <span className="flex items-center gap-1">
                 {getTypeIcon(apt.type)}
@@ -302,7 +342,6 @@ export function PatientAppointments() {
               </span>
             </div>
 
-            {/* Location */}
             {apt.location && (
               <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -310,7 +349,6 @@ export function PatientAppointments() {
               </p>
             )}
 
-            {/* Appointment Code */}
             {apt.appointmentCode && (
               <div className="bg-primary/10 border border-primary/20 px-3 py-2 mb-2 inline-flex items-center gap-2">
                 <span className="text-xs font-mono uppercase text-muted-foreground">Appointment Code</span>
@@ -318,7 +356,6 @@ export function PatientAppointments() {
               </div>
             )}
 
-            {/* Prep Notes Callout */}
             {apt.prepNotes && (
               <div className="border-l-2 border-yellow-500/50 bg-yellow-500/5 pl-3 py-2 mb-2">
                 <div className="flex items-center gap-1.5 mb-1">
@@ -329,18 +366,14 @@ export function PatientAppointments() {
               </div>
             )}
 
-            {/* Regular notes */}
             {apt.notes && (
               <p className="text-sm text-muted-foreground">{apt.notes}</p>
             )}
           </div>
 
-          {/* Actions Column */}
           <div className="flex sm:flex-col gap-2 shrink-0">
-            {/* Scheduled appointment actions */}
             {apt.status === "scheduled" && (
               <>
-                {/* Join Call button with tooltip */}
                 {apt.type === "telehealth" && (
                   isJoinable ? (
                     <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1">
@@ -368,7 +401,6 @@ export function PatientAppointments() {
                   )
                 )}
 
-                {/* Actions Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button size="sm" variant="outline" className="bg-transparent">
@@ -377,12 +409,25 @@ export function PatientAppointments() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem className="cursor-pointer">
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setSelectedAppointment(apt)
+                        setRescheduleDialogOpen(true)
+                      }}
+                    >
                       <Calendar className="w-4 h-4 mr-2" />
                       Reschedule
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem variant="destructive" className="cursor-pointer">
+                    <DropdownMenuItem
+                      variant="destructive"
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setSelectedAppointment(apt)
+                        setCancelDialogOpen(true)
+                      }}
+                    >
                       <XCircle className="w-4 h-4 mr-2" />
                       Cancel Appointment
                     </DropdownMenuItem>
@@ -391,13 +436,18 @@ export function PatientAppointments() {
               </>
             )}
 
-            {/* Past appointment actions */}
             {apt.status === "completed" && (
               <Button size="sm" variant="outline" className="bg-transparent gap-1">
                 <FileText className="w-3.5 h-3.5" />
                 Summary
                 <ChevronRight className="w-3.5 h-3.5" />
               </Button>
+            )}
+
+            {apt.status === "pending" && (
+              <div className="bg-yellow-500/10 px-3 py-1 rounded border border-yellow-500/20 text-center">
+                <p className="text-xs text-yellow-500 font-medium">Pending Confirmation</p>
+              </div>
             )}
           </div>
         </div>
@@ -407,7 +457,6 @@ export function PatientAppointments() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-primary/10 flex items-center justify-center">
@@ -429,70 +478,6 @@ export function PatientAppointments() {
         </Button>
       </div>
 
-      {/* Next Appointment Highlight */}
-      {upcomingAppointments.length > 0 && (() => {
-        const next = upcomingAppointments[0]
-        const relativeTime = getRelativeTime(next.date)
-        const isJoinable = (() => {
-          if (next.type !== "telehealth") return false
-          const aptDateTime = new Date(`${next.date}T${convertTo24Hr(next.time)}`)
-          const now = new Date()
-          const diffMin = (aptDateTime.getTime() - now.getTime()) / (1000 * 60)
-          return diffMin <= 15
-        })()
-
-        return (
-          <div className="border-2 border-primary/30 bg-primary/5 p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <p className="text-xs font-mono uppercase text-primary">Next Appointment</p>
-              {relativeTime && (
-                <span className="text-xs font-mono uppercase text-primary/70">
-                  &mdash; {relativeTime}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
-              <div>
-                <h3 className="text-lg font-bold text-foreground">{next.title}</h3>
-                <p className="text-muted-foreground">
-                  {new Date(next.date).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-                  {" "}at {next.time}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  With {next.providerName} &middot; {next.duration} &middot; {getTypeLabel(next.type)}
-                </p>
-              </div>
-              {next.type === "telehealth" && (
-                isJoinable ? (
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-                    <Video className="w-4 h-4" />
-                    Join Call
-                  </Button>
-                ) : (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span tabIndex={0}>
-                        <Button
-                          className="bg-primary/30 text-primary-foreground gap-2 cursor-not-allowed"
-                          disabled
-                        >
-                          <Video className="w-4 h-4" />
-                          Join Call
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Available 15 minutes before your appointment
-                    </TooltipContent>
-                  </Tooltip>
-                )
-              )}
-            </div>
-          </div>
-        )
-      })()}
-
-      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="border-b border-border w-full justify-start bg-transparent p-0">
           <TabsTrigger value="upcoming" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
@@ -539,51 +524,124 @@ export function PatientAppointments() {
         </TabsContent>
       </Tabs>
 
+      {/* Cancel Appointment Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent className="border border-border">
+          <DialogHeader>
+            <DialogTitle>Cancel Appointment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this appointment? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {selectedAppointment && (
+              <div className="bg-muted p-4 rounded-md">
+                <p className="font-medium">{selectedAppointment.title}</p>
+                <p className="text-sm text-muted-foreground">{selectedAppointment.date} at {selectedAppointment.time}</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>Keep Appointment</Button>
+            <Button variant="destructive" onClick={handleCancel}>Confirm Cancellation</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reschedule Appointment Dialog */}
+      <Dialog open={rescheduleDialogOpen} onOpenChange={setRescheduleDialogOpen}>
+        <DialogContent className="border border-border">
+          <DialogHeader>
+            <DialogTitle>Request Reschedule</DialogTitle>
+            <DialogDescription>
+              Submit a request to reschedule this appointment.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            {selectedAppointment && (
+              <div className="bg-muted p-4 rounded-md mb-4">
+                <p className="font-medium">Current: {selectedAppointment.title}</p>
+                <p className="text-sm text-muted-foreground">{selectedAppointment.date} at {selectedAppointment.time}</p>
+              </div>
+            )}
+            <div className="bg-primary/5 border border-primary/20 p-4 rounded-md">
+              <p className="text-sm text-foreground">
+                Your concierge will reach out shortly to coordinate a new time (typically within 24 hours).
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduleDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleReschedule}>Request Reschedule</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Request Appointment Dialog */}
       <Dialog open={requestDialogOpen} onOpenChange={setRequestDialogOpen}>
-        <DialogContent className="border border-border">
+        <DialogContent className="border border-border sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-foreground">Request an Appointment</DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Your wellness concierge will coordinate scheduling based on your preferences.
+              Submit your preferences and your concierge will confirm the appointment.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="bg-muted/30 p-4 border border-border">
-              <p className="text-xs font-mono uppercase text-muted-foreground mb-3">How It Works</p>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-mono mt-0.5">1.</span>
-                  <span>Submit your appointment request below</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-mono mt-0.5">2.</span>
-                  <span>Your concierge will confirm availability within 24 hours</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-mono mt-0.5">3.</span>
-                  <span>You will receive a confirmation with appointment details</span>
-                </li>
-              </ul>
+
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="type">Reason for Request</Label>
+              <Select value={requestReason} onValueChange={setRequestReason}>
+                <SelectTrigger id="type">
+                  <SelectValue placeholder="Select reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="review-labs" className="focus:text-yellow-500 focus:bg-yellow-500/10 cursor-pointer">Review Lab Results</SelectItem>
+                  <SelectItem value="discuss-protocol" className="focus:text-yellow-500 focus:bg-yellow-500/10 cursor-pointer">Discuss Protocol/Dosage</SelectItem>
+                  <SelectItem value="new-concern" className="focus:text-yellow-500 focus:bg-yellow-500/10 cursor-pointer">New Health Concern</SelectItem>
+                  <SelectItem value="check-in" className="focus:text-yellow-500 focus:bg-yellow-500/10 cursor-pointer">General Check-in</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+
+
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Notes or Specific Concerns</Label>
+              <Textarea
+                id="notes"
+                placeholder="Please describe what you'd like to discuss..."
+                value={requestNotes}
+                onChange={(e) => setRequestNotes(e.target.value)}
+              />
+            </div>
+
+            <div className="bg-muted/30 p-3 rounded-md border border-border mt-2">
+              <div className="flex items-center gap-2 text-sm text-yellow-500 mb-1">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="font-medium">Please Note</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This is a request only. Your appointment is not confirmed until you receive a notification from your concierge.
+              </p>
             </div>
           </div>
-          <div className="flex gap-3">
+
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setRequestDialogOpen(false)}
-              className="flex-1 bg-transparent"
             >
               Cancel
             </Button>
             <Button
-              onClick={() => setRequestDialogOpen(false)}
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={handleRequest}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Submit Request
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   )
 }

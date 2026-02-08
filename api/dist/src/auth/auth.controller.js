@@ -18,6 +18,7 @@ const auth_service_1 = require("./auth.service");
 const register_dto_1 = require("./dto/register.dto");
 const login_dto_1 = require("./dto/login.dto");
 const change_password_dto_1 = require("./dto/change-password.dto");
+const update_profile_dto_1 = require("./dto/update-profile.dto");
 const jwt_auth_guard_1 = require("./jwt-auth.guard");
 let AuthController = class AuthController {
     authService;
@@ -40,6 +41,11 @@ let AuthController = class AuthController {
     async getProfile(req) {
         const userId = req.user.userId;
         return this.authService.getUserProfile(userId);
+    }
+    async updateProfile(updateProfileDto, req) {
+        const userId = req.user.userId;
+        const ipAddress = this.getClientIp(req);
+        return this.authService.updateProfile(userId, updateProfileDto, ipAddress);
     }
     async changePassword(changePasswordDto, req) {
         const userId = req.user.userId;
@@ -92,6 +98,16 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.Patch)('profile'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [update_profile_dto_1.UpdateProfileDto, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "updateProfile", null);
 __decorate([
     (0, common_1.Post)('change-password'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

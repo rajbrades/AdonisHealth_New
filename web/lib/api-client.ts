@@ -3,7 +3,7 @@
  * Handles authentication, token management, and API requests
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 interface LoginCredentials {
   email: string;
@@ -41,6 +41,7 @@ interface User {
     gender: string;
     phone?: string;
     address?: string;
+    shippingAddress?: string;
   };
   providerProfile?: any;
   conciergeProfile?: any;
@@ -183,6 +184,56 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ currentPassword, newPassword }),
     });
+  }
+
+  // Generic Request Methods
+
+  async get<T>(url: string): Promise<T> {
+    return this.request<T>(url, {
+      method: 'GET',
+    });
+  }
+
+  async post<T>(endpoint: string, data?: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async patch<T>(endpoint: string, data?: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async delete<T>(endpoint: string, data?: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'DELETE',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  // Regimen Methods
+  async createRegimen(data: any): Promise<any> {
+    return this.post('/regimen', data);
+  }
+
+  async getRegimens(activeOnly = false): Promise<any[]> {
+    return this.get(`/regimen?activeOnly=${activeOnly}`);
+  }
+
+  async updateRegimen(id: string, data: any): Promise<any> {
+    return this.patch(`/regimen/${id}`, data);
+  }
+
+  async discontinueRegimen(id: string, data: any): Promise<any> {
+    return this.delete(`/regimen/${id}`, data);
+  }
+
+  async getRegimenHistory(id: string): Promise<any[]> {
+    return this.get(`/regimen/${id}/history`);
   }
 
   /**

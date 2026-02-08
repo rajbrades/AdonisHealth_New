@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -38,6 +39,34 @@ export declare class AuthController {
             gender: string;
             phone: string | null;
             address: string | null;
+            shippingAddress: string | null;
+        } | null;
+        providerProfile: {
+            id: string;
+            firstName: string;
+            lastName: string;
+            specialty: string | null;
+        } | null;
+        conciergeProfile: {
+            id: string;
+            firstName: string;
+            lastName: string;
+        } | null;
+    }>;
+    updateProfile(updateProfileDto: UpdateProfileDto, req: any): Promise<{
+        id: string;
+        email: string;
+        role: string;
+        createdAt: Date;
+        patientProfile: {
+            id: string;
+            firstName: string;
+            lastName: string;
+            dob: Date;
+            gender: string;
+            phone: string | null;
+            address: string | null;
+            shippingAddress: string | null;
         } | null;
         providerProfile: {
             id: string;
