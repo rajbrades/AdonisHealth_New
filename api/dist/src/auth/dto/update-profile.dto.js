@@ -15,6 +15,7 @@ class UpdateProfileDto {
     phone;
     address;
     shippingAddress;
+    weight;
 }
 exports.UpdateProfileDto = UpdateProfileDto;
 __decorate([
@@ -32,4 +33,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateProfileDto.prototype, "shippingAddress", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], UpdateProfileDto.prototype, "weight", void 0);
 //# sourceMappingURL=update-profile.dto.js.map

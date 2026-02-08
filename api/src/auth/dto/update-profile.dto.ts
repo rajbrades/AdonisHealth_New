@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsNumber, Min } from 'class-validator';
 
 export class UpdateProfileDto {
     @IsOptional()
@@ -12,4 +12,9 @@ export class UpdateProfileDto {
     @IsOptional()
     @IsString()
     shippingAddress?: string;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    weight?: number; // Weight in pounds
 }

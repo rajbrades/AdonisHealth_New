@@ -245,6 +245,10 @@ let AuthService = class AuthService {
                 ...(updateData.phone !== undefined && { phone: updateData.phone }),
                 ...(updateData.address !== undefined && { address: updateData.address }),
                 ...(updateData.shippingAddress !== undefined && { shippingAddress: updateData.shippingAddress }),
+                ...(updateData.weight !== undefined && {
+                    weight: updateData.weight,
+                    weightUpdatedAt: new Date()
+                }),
             },
         });
         await this.auditService.log(userId, audit_service_1.AuditAction.EDIT_PATIENT_PROFILE, `profile:${user.patientProfile.id}`, ipAddress, { updatedFields: Object.keys(updateData) });

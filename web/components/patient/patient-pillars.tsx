@@ -1,6 +1,7 @@
 "use client"
 
 import { Moon, Utensils, Dumbbell, Brain, Pill, TrendingUp, TrendingDown, Minus, Info } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const pillarsData = {
   sleep: {
@@ -101,23 +102,23 @@ const pillarsData = {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 80) return "text-green-500"
-  if (score >= 60) return "text-yellow-500"
-  return "text-red-500"
+  if (score >= 80) return "text-emerald-400"  // Muted green for dark theme
+  if (score >= 60) return "text-[#FCD24E]"    // Adonis yellow
+  return "text-rose-400"                       // Muted red for dark theme
 }
 
 function getScoreBg(score: number) {
-  if (score >= 80) return "bg-green-500"
-  if (score >= 60) return "bg-yellow-500"
-  return "bg-red-500"
+  if (score >= 80) return "bg-emerald-500"    // Muted green
+  if (score >= 60) return "bg-[#FCD24E]"      // Adonis yellow
+  return "bg-rose-500"                         // Muted red
 }
 
 function getTrendIcon(trend: string) {
   switch (trend) {
     case "up":
-      return <TrendingUp className="w-4 h-4 text-green-500" />
+      return <TrendingUp className="w-4 h-4 text-emerald-400" />
     case "down":
-      return <TrendingDown className="w-4 h-4 text-red-500" />
+      return <TrendingDown className="w-4 h-4 text-rose-400" />
     default:
       return <Minus className="w-4 h-4 text-muted-foreground" />
   }
@@ -156,7 +157,7 @@ export function PatientPillars() {
                     <div className="flex items-center gap-1 justify-end mt-1">
                       {getTrendIcon(pillar.trend)}
                       <span
-                        className={`text-sm ${pillar.trend === "up" ? "text-green-500" : pillar.trend === "down" ? "text-red-500" : "text-muted-foreground"}`}
+                        className={`text-sm ${pillar.trend === "up" ? "text-emerald-400" : pillar.trend === "down" ? "text-rose-400" : "text-muted-foreground"}`}
                       >
                         {pillar.change}
                       </span>
@@ -171,15 +172,28 @@ export function PatientPillars() {
                   {/* Weekly Chart */}
                   <div>
                     <p className="text-xs font-mono uppercase text-muted-foreground mb-3">7-Day Trend</p>
-                    <div className="h-24 flex items-end gap-1">
-                      {pillar.weeklyData.map((value, index) => (
-                        <div
-                          key={index}
-                          className={`flex-1 ${getScoreBg(value)} hover:opacity-80 transition-opacity`}
-                          style={{ height: `${value}%` }}
-                        />
-                      ))}
-                    </div>
+                    <TooltipProvider>
+                      <div className="h-24 flex items-end gap-1">
+                        {pillar.weeklyData.map((value, index) => {
+                          // Convert percentage (0-100) to 1-10 scale with one decimal
+                          const rating = ((value / 100) * 10).toFixed(1)
+
+                          return (
+                            <Tooltip key={index}>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className={`flex-1 ${getScoreBg(value)} hover:opacity-80 transition-opacity cursor-pointer`}
+                                  style={{ height: `${value}%` }}
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs font-semibold">Rating: {rating}/10</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )
+                        })}
+                      </div>
+                    </TooltipProvider>
                     <div className="flex justify-between mt-1 text-xs text-muted-foreground">
                       <span>7d ago</span>
                       <span>Today</span>

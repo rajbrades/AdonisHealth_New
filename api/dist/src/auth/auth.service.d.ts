@@ -39,8 +39,8 @@ export declare class AuthService {
     private checkAccountLockout;
     private logFailedLoginAttempt;
     getUserProfile(userId: string): Promise<{
-        id: string;
         email: string;
+        id: string;
         role: string;
         createdAt: Date;
         patientProfile: {
@@ -69,9 +69,10 @@ export declare class AuthService {
         phone?: string;
         address?: string;
         shippingAddress?: string;
+        weight?: number;
     }, ipAddress?: string): Promise<{
-        id: string;
         email: string;
+        id: string;
         role: string;
         createdAt: Date;
         patientProfile: {

@@ -322,7 +322,7 @@ export class AuthService {
    */
   async updateProfile(
     userId: string,
-    updateData: { phone?: string; address?: string; shippingAddress?: string },
+    updateData: { phone?: string; address?: string; shippingAddress?: string; weight?: number },
     ipAddress?: string,
   ) {
     const user = await this.prisma.user.findUnique({
@@ -345,6 +345,10 @@ export class AuthService {
         ...(updateData.phone !== undefined && { phone: updateData.phone }),
         ...(updateData.address !== undefined && { address: updateData.address }),
         ...(updateData.shippingAddress !== undefined && { shippingAddress: updateData.shippingAddress }),
+        ...(updateData.weight !== undefined && {
+          weight: updateData.weight,
+          weightUpdatedAt: new Date()
+        }),
       },
     });
 

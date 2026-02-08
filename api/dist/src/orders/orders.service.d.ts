@@ -43,6 +43,8 @@ export declare class OrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         items: ({
             product: {
@@ -82,6 +84,8 @@ export declare class OrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         items: ({
             product: {

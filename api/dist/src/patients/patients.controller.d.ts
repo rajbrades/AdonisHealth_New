@@ -52,6 +52,8 @@ export declare class PatientsController {
         phone: string | null;
         address: string | null;
         shippingAddress: string | null;
+        weight: number | null;
+        weightUpdatedAt: Date | null;
     })[]>;
     findOne(id: string): Promise<({
         clinicalNotes: {
@@ -135,5 +137,7 @@ export declare class PatientsController {
         phone: string | null;
         address: string | null;
         shippingAddress: string | null;
+        weight: number | null;
+        weightUpdatedAt: Date | null;
     }) | null>;
 }

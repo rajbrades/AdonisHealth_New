@@ -19,6 +19,8 @@ export declare class QuotesService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         items: ({
             product: {
@@ -63,6 +65,8 @@ export declare class QuotesService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         items: {
             id: string;
@@ -100,6 +104,8 @@ export declare class QuotesService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         items: ({
             product: {

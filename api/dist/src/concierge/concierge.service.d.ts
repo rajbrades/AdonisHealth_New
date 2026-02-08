@@ -24,8 +24,8 @@ export declare class ConciergeService {
         adherence: {
             id: string;
             notes: string | null;
-            checkInId: string;
             regimenId: string;
+            checkInId: string;
             adherent: boolean;
         }[];
     } & {

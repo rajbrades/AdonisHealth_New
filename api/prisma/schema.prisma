@@ -34,6 +34,8 @@ model PatientProfile {
   phone           String?
   address         String?
   shippingAddress String?
+  weight          Float?   // Weight in pounds
+  weightUpdatedAt DateTime? // Last time weight was updated
 
   labResults    LabResult[]
   labPanels     LabPanel[]    // New lab infrastructure

@@ -27,8 +27,8 @@ export declare class AuthController {
         message: string;
     }>;
     getProfile(req: any): Promise<{
-        id: string;
         email: string;
+        id: string;
         role: string;
         createdAt: Date;
         patientProfile: {
@@ -54,8 +54,8 @@ export declare class AuthController {
         } | null;
     }>;
     updateProfile(updateProfileDto: UpdateProfileDto, req: any): Promise<{
-        id: string;
         email: string;
+        id: string;
         role: string;
         createdAt: Date;
         patientProfile: {

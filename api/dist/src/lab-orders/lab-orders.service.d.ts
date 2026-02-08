@@ -36,6 +36,8 @@ export declare class LabOrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         orderingProvider: {
             id: string;
@@ -88,6 +90,8 @@ export declare class LabOrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         labPanel: {
             id: string;
@@ -158,6 +162,8 @@ export declare class LabOrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         labPanel: ({
             results: ({
@@ -266,6 +272,8 @@ export declare class LabOrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         labPanel: {
             id: string;
@@ -331,6 +339,8 @@ export declare class LabOrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         labPanel: {
             id: string;
@@ -396,6 +406,8 @@ export declare class LabOrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         labPanel: {
             id: string;
@@ -461,6 +473,8 @@ export declare class LabOrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         labPanel: ({
             results: ({
@@ -592,6 +606,8 @@ export declare class LabOrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         labPanel: {
             id: string;
@@ -662,6 +678,8 @@ export declare class LabOrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         labPanel: {
             id: string;
@@ -732,6 +750,8 @@ export declare class LabOrdersService {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         orderingProvider: {
             id: string;

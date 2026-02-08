@@ -24,6 +24,8 @@ export declare class AppointmentsController {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         provider: ({
             user: {
@@ -97,6 +99,8 @@ export declare class AppointmentsController {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
         provider: {
             id: string;

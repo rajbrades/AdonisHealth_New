@@ -7,23 +7,23 @@ export declare class RegimenController {
     create(req: any, createDto: CreateRegimenDto): Promise<{
         changeHistory: {
             id: string;
-            notes: string | null;
             createdAt: Date;
             userId: string | null;
+            notes: string | null;
+            reason: string | null;
             changeType: string;
             fieldChanged: string | null;
             oldValue: string | null;
             newValue: string | null;
             changedBy: string;
-            reason: string | null;
             regimenId: string;
         }[];
     } & {
         id: string;
         name: string;
+        type: string;
         dosage: string | null;
         frequency: string | null;
-        type: string;
         source: string;
         active: boolean;
         startDate: Date | null;
@@ -35,23 +35,23 @@ export declare class RegimenController {
     findAll(req: any, activeOnly?: string): Promise<({
         changeHistory: {
             id: string;
-            notes: string | null;
             createdAt: Date;
             userId: string | null;
+            notes: string | null;
+            reason: string | null;
             changeType: string;
             fieldChanged: string | null;
             oldValue: string | null;
             newValue: string | null;
             changedBy: string;
-            reason: string | null;
             regimenId: string;
         }[];
     } & {
         id: string;
         name: string;
+        type: string;
         dosage: string | null;
         frequency: string | null;
-        type: string;
         source: string;
         active: boolean;
         startDate: Date | null;
@@ -81,13 +81,15 @@ export declare class RegimenController {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
     } & {
         id: string;
         name: string;
+        type: string;
         dosage: string | null;
         frequency: string | null;
-        type: string;
         source: string;
         active: boolean;
         startDate: Date | null;
@@ -117,13 +119,15 @@ export declare class RegimenController {
             phone: string | null;
             address: string | null;
             shippingAddress: string | null;
+            weight: number | null;
+            weightUpdatedAt: Date | null;
         };
     } & {
         id: string;
         name: string;
+        type: string;
         dosage: string | null;
         frequency: string | null;
-        type: string;
         source: string;
         active: boolean;
         startDate: Date | null;
@@ -134,23 +138,23 @@ export declare class RegimenController {
     }) | ({
         changeHistory: {
             id: string;
-            notes: string | null;
             createdAt: Date;
             userId: string | null;
+            notes: string | null;
+            reason: string | null;
             changeType: string;
             fieldChanged: string | null;
             oldValue: string | null;
             newValue: string | null;
             changedBy: string;
-            reason: string | null;
             regimenId: string;
         }[];
     } & {
         id: string;
         name: string;
+        type: string;
         dosage: string | null;
         frequency: string | null;
-        type: string;
         source: string;
         active: boolean;
         startDate: Date | null;
@@ -162,23 +166,23 @@ export declare class RegimenController {
     discontinue(req: any, id: string, discontinueDto: DiscontinueRegimenDto): Promise<{
         changeHistory: {
             id: string;
-            notes: string | null;
             createdAt: Date;
             userId: string | null;
+            notes: string | null;
+            reason: string | null;
             changeType: string;
             fieldChanged: string | null;
             oldValue: string | null;
             newValue: string | null;
             changedBy: string;
-            reason: string | null;
             regimenId: string;
         }[];
     } & {
         id: string;
         name: string;
+        type: string;
         dosage: string | null;
         frequency: string | null;
-        type: string;
         source: string;
         active: boolean;
         startDate: Date | null;
@@ -189,15 +193,15 @@ export declare class RegimenController {
     }>;
     getHistory(req: any, id: string): Promise<{
         id: string;
-        notes: string | null;
         createdAt: Date;
         userId: string | null;
+        notes: string | null;
+        reason: string | null;
         changeType: string;
         fieldChanged: string | null;
         oldValue: string | null;
         newValue: string | null;
         changedBy: string;
-        reason: string | null;
         regimenId: string;
     }[]>;
 }
